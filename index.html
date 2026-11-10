@@ -1,592 +1,612 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#080b10">
-<title>PlayCloud PS - منصة الألعاب السحابية</title>
-
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0F172A">
+<title>دولة الأورشاليم المستقلة | الحكومة الرقمية</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
-
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-body{
- margin:0;
- font-family:'Tajawal',sans-serif;
- background:#080b10;
- color:#e2e8f0;
- overflow-x:hidden
+body{margin:0;background:#0b1224;color:#f8fafc;font-family:Cairo,sans-serif}
+.gold{color:#D4AF37}
+.goldbg{background:#D4AF37;color:#111827}
+.panel{background:#17243b;border:1px solid #34415a;border-radius:17px}
+input,select,textarea{width:100%;background:#0d172b;color:white;border:1px solid #3b4962;border-radius:10px;padding:12px;font-family:inherit;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#D4AF37}
+button{cursor:pointer;font-family:inherit}
+.btn{padding:11px 17px;border-radius:10px;font-weight:bold}
+.btn-gold{background:#D4AF37;color:#111827}
+.btn-blue{background:#2563eb;color:white}
+.btn-green{background:#15803d;color:white}
+.btn-red{background:#991b1b;color:white}
+.muted{color:#9caec5}
+.navbtn{padding:10px 13px;border-radius:10px;background:#1e2d46;color:#dce5f5;font-size:13px}
+.navbtn.active{background:#D4AF37;color:#111827;font-weight:bold}
+.section{display:none}
+.section.active{display:block}
+.doc{background:#fff;color:#172033;border:5px double #c19a32;border-radius:8px;padding:20px;text-align:center;position:relative;overflow:hidden}
+.doc h2{color:#96711d;font-size:23px;font-weight:900}
+.doc .seal{width:75px;height:75px;border:3px double #b58c2c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:15px auto;color:#a17a20;font-size:27px}
+.doc .docphoto{width:100px;height:120px;object-fit:cover;border:3px solid #bd983c;border-radius:7px}
+.docrow{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:9px 0;text-align:right;font-size:13px}
+.docrow b{color:#96711d}
+.avatar{width:85px;height:85px;border-radius:50%;object-fit:cover;border:3px solid #D4AF37}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;background:#334155;color:#e2e8f0}
+.cardicon{font-size:28px;color:#D4AF37;margin-bottom:12px}
+@media print{
+body{background:white!important;color:black!important}
+body *{visibility:hidden!important}
+#printArea,#printArea *{visibility:visible!important}
+#printArea{display:block!important;position:absolute;left:0;top:0;width:100%;padding:15px}
+.doc{border:5px double #a17a20!important;min-height:550px}
+.no-print{display:none!important}
 }
-.ps-glow{box-shadow:0 0 25px #0070d155}
-.neon-text{text-shadow:0 0 12px #00a8ff99}
-.game-card{transition:.25s}
-.game-card:hover{
- transform:translateY(-6px);
- box-shadow:0 10px 30px #0070d155
-}
-button{touch-action:manipulation}
-::-webkit-scrollbar{width:7px}
-::-webkit-scrollbar-track{background:#0f172a}
-::-webkit-scrollbar-thumb{background:#0070d1;border-radius:8px}
-.category-btn.active{background:#2563eb;color:white}
-#gameModal{display:none}
-#gameModal.open{display:flex}
-
-/* ضبط الكانفاس ليكون في الوضع الطولي (Portrait) */
-#gameCanvas{
- width: 100%;
- max-width: 420px; /* تحديد عرض مناسب للشاشة الطويلة */
- height: 100%;
- display: block;
- margin: 0 auto;
- touch-action: none;
- image-rendering: pixelated;
-}
-
-.control-btn{
- width:48px;height:48px;border-radius:12px;
- background:#334155dd;color:white;font-size:20px;
- display:flex;align-items:center;justify-content:center;
- border:1px solid #64748b
-}
-.control-btn:active{background:#2563eb}
-.action-btn{
- width:48px;height:48px;border-radius:50%;
- color:white;font-size:20px;font-weight:bold;
- display:flex;align-items:center;justify-content:center
-}
-#mobileControls{pointer-events:none}
-#mobileControls button{pointer-events:auto;user-select:none}
 </style>
 </head>
+<body>
 
-<body class="min-h-screen flex flex-col">
-
-<header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur-md border-b border-blue-900/40 px-4 md:px-6 py-4">
-<div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
-
+<!-- HEADER -->
+<header class="panel rounded-none border-x-0 border-t-0 p-4 sticky top-0 z-50">
+<div class="max-w-6xl mx-auto flex justify-between items-center gap-3">
 <div class="flex items-center gap-3">
-<div class="bg-blue-600 text-white p-3 rounded-xl ps-glow">
-<i class="fa-brands fa-playstation text-2xl"></i>
-</div>
+<div class="w-12 h-12 rounded-full goldbg flex items-center justify-center text-2xl">🏛️</div>
 <div>
-<h1 class="text-xl md:text-2xl font-black text-white neon-text">
-PLAY<span class="text-blue-500">CLOUD</span>
-</h1>
-<p class="text-xs text-blue-400 font-bold">منصة الألعاب السحابية</p>
+<h1 class="font-black text-base md:text-xl gold">دولة الأورشاليم المستقلة</h1>
+<p class="text-xs muted">الحكومة الرقمية • بوابة المواطنين</p>
 </div>
 </div>
-
-<div class="hidden md:flex items-center bg-slate-800 rounded-full px-4 py-2 border border-slate-700 w-1/3">
-<i class="fa-solid fa-magnifying-glass text-slate-400 ml-2"></i>
-<input id="searchInput" type="search"
-placeholder="ابحث عن لعبتك المفضلة..."
-class="bg-transparent outline-none text-white text-sm w-full">
-</div>
-
-<div class="flex items-center gap-3">
-<div id="gamepadStatus" class="hidden lg:flex items-center gap-2 bg-slate-800 px-3 py-2 rounded-lg text-xs text-slate-400">
-<i class="fa-solid fa-gamepad" id="gamepadIcon"></i>
-<span id="gamepadText">انتظر ذراع التحكم</span>
-</div>
-<div class="flex items-center gap-2 bg-blue-600/20 border border-blue-500/30 px-3 py-2 rounded-full">
-<span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-<span class="text-xs font-bold text-blue-300">المنصة جاهزة</span>
-</div>
-</div>
-</div>
-
-<div class="md:hidden mt-4">
-<div class="flex items-center bg-slate-800 rounded-xl px-4 py-3 border border-slate-700">
-<i class="fa-solid fa-magnifying-glass text-slate-400 ml-2"></i>
-<input id="mobileSearch" type="search"
-placeholder="ابحث عن لعبة..."
-class="bg-transparent outline-none text-white text-sm w-full">
-</div>
+<div id="userHeader" class="text-xs text-right muted">زائر</div>
 </div>
 </header>
 
-<main class="container mx-auto px-4 py-7 flex-1 max-w-7xl">
-
-<section class="relative rounded-3xl overflow-hidden mb-9 bg-gradient-to-r from-blue-950 via-slate-900 to-indigo-950 border border-blue-500/20 p-7 md:p-12 flex flex-col md:flex-row items-center justify-between gap-7">
-<div class="space-y-4 max-w-xl relative z-10">
-<span class="bg-blue-600/30 text-blue-400 text-xs font-bold px-3 py-2 rounded-full border border-blue-500/30">
-PLAYCLOUD GAMING
-</span>
-<h2 class="text-3xl md:text-5xl font-black text-white leading-tight">
-عالم الألعاب يبدأ من هنا!
-</h2>
-<p class="text-slate-400 text-sm md:text-base">
-اكتشف مكتبة الألعاب واستمتع بالتجربة التجريبية مباشرة من متصفحك.
+<!-- HERO -->
+<section class="text-center py-12 px-5 bg-gradient-to-b from-blue-950 to-transparent">
+<div class="text-5xl mb-4">👑</div>
+<div class="badge mb-4">المنظومة الوطنية الرقمية</div>
+<h2 class="text-3xl md:text-5xl font-black gold mb-4">أهلاً بكم في دولة الأورشاليم</h2>
+<p class="text-slate-300 max-w-2xl mx-auto text-sm md:text-base leading-8">
+دولة رقمية مستقلة في إدارتها الداخلية، تجمع المواطنين في منظومة واحدة من الهوية والخدمات والوزارات والانتخابات.
 </p>
-<button id="startBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition ps-glow">
-<i class="fa-solid fa-play ml-2"></i>
-ابدأ اللعب الآن
-</button>
-</div>
-<div class="text-blue-500/20 text-9xl hidden md:block">
-<i class="fa-brands fa-playstation"></i>
+<div class="mt-6 flex justify-center gap-3 flex-wrap">
+<button class="btn btn-gold" onclick="showSection('register')">إنشاء هوية مواطن</button>
+<button class="btn bg-slate-700 text-white" onclick="showSection('profile')">ملفي الشخصي</button>
 </div>
 </section>
 
-<section class="mb-6">
-<h2 class="text-xl font-black text-white mb-4">
-<i class="fa-solid fa-layer-group text-blue-500 ml-2"></i>
-مكتبة الألعاب
-</h2>
+<!-- NAVIGATION -->
+<nav class="max-w-6xl mx-auto px-4 py-4 flex gap-2 overflow-x-auto no-print">
+<button class="navbtn active" onclick="showSection('home',this)">الرئيسية</button>
+<button class="navbtn" onclick="showSection('register',this)">التسجيل</button>
+<button class="navbtn" onclick="showSection('profile',this)">ملفي</button>
+<button class="navbtn" onclick="showSection('documents',this)">وثائقي</button>
+<button class="navbtn" onclick="showSection('citizens',this)">السجل المدني</button>
+<button class="navbtn" onclick="showSection('ministries',this)">الوزارات</button>
+<button class="navbtn" onclick="showSection('elections',this)">الانتخابات</button>
+<button class="navbtn" onclick="showSection('messages',this)">المراسلات</button>
+<button class="navbtn" onclick="showSection('ministerPanel',this)">لوحة الوزير</button>
+</nav>
 
-<div class="flex gap-2 overflow-x-auto pb-3" id="categories">
-<button data-category="all" class="category-btn active px-5 py-2.5 rounded-xl whitespace-nowrap bg-slate-800 text-slate-300">الكل</button>
-<button data-category="action" class="category-btn px-5 py-2.5 rounded-xl whitespace-nowrap bg-slate-800 text-slate-300">أكشن ومغامرات</button>
-<button data-category="sports" class="category-btn px-5 py-2.5 rounded-xl whitespace-nowrap bg-slate-800 text-slate-300">كرة قدم ورياضة</button>
-<button data-category="racing" class="category-btn px-5 py-2.5 rounded-xl whitespace-nowrap bg-slate-800 text-slate-300">سباقات</button>
+<main class="max-w-6xl mx-auto px-4 pb-16">
+
+<!-- HOME -->
+<section id="home" class="section active">
+<h3 class="text-2xl font-black gold mb-5">🏛️ مؤسسات الدولة</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<div class="panel p-5 text-center"><div class="cardicon">🪪</div><b>الهوية الوطنية</b><p class="text-xs muted mt-2">بطاقة رقمية لكل مواطن</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">📘</div><b>جواز الدولة</b><p class="text-xs muted mt-2">جواز رمزي للمواطن</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">📜</div><b>السجل المدني</b><p class="text-xs muted mt-2">شهادات الميلاد والبيانات</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">🗳️</div><b>الانتخابات</b><p class="text-xs muted mt-2">اختيار الوزراء بالتصويت</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">🌿</div><b>وزارة البيئة والخدمات</b><p class="text-xs muted mt-2">الخدمات العامة والبيئة</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">❤️</div><b>وزارة التكافل</b><p class="text-xs muted mt-2">المساعدة والتعاون</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">⚽</div><b>وزارة الأنشطة</b><p class="text-xs muted mt-2">الرياضة والفعاليات</p></div>
+<div class="panel p-5 text-center"><div class="cardicon">💻</div><b>وزارة الإعلام والتطوير</b><p class="text-xs muted mt-2">التقنية والإعلام</p></div>
 </div>
-</section>
-
-<div id="resultCount" class="text-xs text-slate-500 mb-4"></div>
-
-<section id="gamesContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5"></section>
-
-<div id="emptyMessage" class="hidden text-center py-16 text-slate-500">
-<i class="fa-solid fa-gamepad text-4xl mb-4"></i>
-<p>لم يتم العثور على ألعاب مطابقة لبحثك.</p>
-</div>
-
-<section class="mt-10 bg-slate-900 border border-slate-800 rounded-2xl p-5">
-<h3 class="font-bold text-white mb-2">
-<i class="fa-solid fa-circle-info text-blue-400 ml-2"></i>
-معلومات عن المنصة
-</h3>
-<p class="text-sm text-slate-400 leading-7">
-هذه النسخة تحتوي على واجهة مكتبة ألعاب ومحرك تجريبي يعمل داخل المتصفح. تشغيل ألعاب PlayStation الأصلية عن بُعد يتطلب خدمة بث ألعاب وخادماً متصلاً بها.
+<div class="panel p-6 mt-6">
+<h3 class="gold font-bold text-xl mb-3">📢 إعلان الدولة</h3>
+<p class="text-sm text-slate-300 leading-8">
+تقوم المنظومة على المشاركة والتعاون والانتخاب. لكل مواطن هوية رقمية، ولكل وزارة اختصاص واضح، وتدار الخدمات من خلال المؤسسات الأربع.
 </p>
+</div>
 </section>
+
+<!-- REGISTER -->
+<section id="register" class="section">
+<div class="panel p-6 max-w-2xl mx-auto">
+<h2 class="text-2xl gold font-black mb-2">🪪 تسجيل مواطن جديد</h2>
+<p class="muted text-sm mb-6">أنشئ ملفك المدني واحصل على وثائقك الرمزية.</p>
+<form id="registerForm" class="space-y-4">
+<div><label class="text-sm">الاسم الكامل</label><input id="regName" required maxlength="60" placeholder="اكتب اسمك الكامل"></div>
+<div><label class="text-sm">تاريخ الميلاد</label><input id="regDob" type="date" required></div>
+<div><label class="text-sm">مكان الميلاد</label><input id="regBirthPlace" required placeholder="مكان الميلاد"></div>
+<div><label class="text-sm">صورة شخصية</label><input id="regPhoto" type="file" accept="image/*" required></div>
+<div class="text-xs muted">ارفع صورة واضحة، وستظهر في بطاقتك وجوازك.</div>
+<button class="btn btn-gold w-full">إنشاء ملف المواطن</button>
+</form>
+</div>
+</section>
+
+<!-- PROFILE -->
+<section id="profile" class="section">
+<h2 class="text-2xl gold font-black mb-5">👤 ملف المواطن</h2>
+<div id="profileContent" class="panel p-6 text-center">سجّل بياناتك أولاً.</div>
+</section>
+
+<!-- DOCUMENTS -->
+<section id="documents" class="section">
+<h2 class="text-2xl gold font-black mb-5">📚 وثائق المواطن</h2>
+<div class="flex flex-wrap gap-2 mb-5 no-print">
+<button class="btn btn-gold" onclick="renderDocument('id')">بطاقة الهوية</button>
+<button class="btn btn-gold" onclick="renderDocument('passport')">جواز الدولة</button>
+<button class="btn btn-gold" onclick="renderDocument('birth')">شهادة الميلاد</button>
+<button class="btn bg-slate-700 text-white" onclick="printDocument()">طباعة / حفظ PDF</button>
+</div>
+<div id="printArea"><div id="documentView" class="text-center muted p-10">اختر الوثيقة لعرضها.</div></div>
+<p class="text-xs muted mt-4 no-print">هذه وثائق رمزية خاصة بالمشروع، وليست مستندات حكومية أو وثائق سفر رسمية.</p>
+</section>
+
+<!-- CITIZENS -->
+<section id="citizens" class="section">
+<h2 class="text-2xl gold font-black mb-5">📋 السجل المدني</h2>
+<div class="panel p-4 mb-4">
+<input id="citizenSearch" placeholder="ابحث بالاسم أو رقم الهوية..." oninput="renderCitizens()">
+</div>
+<div id="citizensList" class="grid md:grid-cols-2 gap-3"></div>
+</section>
+
+<!-- MINISTRIES -->
+<section id="ministries" class="section">
+<h2 class="text-2xl gold font-black mb-5">🏛️ الوزارات الأربع</h2>
+<div id="ministriesList" class="grid md:grid-cols-2 gap-4"></div>
+</section>
+
+<!-- ELECTIONS -->
+<section id="elections" class="section">
+<div class="panel p-6">
+<h2 class="text-2xl gold font-black mb-2">🗳️ الانتخابات العامة</h2>
+<p class="text-sm muted mb-4">ترشح لمنصب وزير في إحدى الوزارات الأربع، وقدم برنامجك للمواطنين.</p>
+<div class="bg-slate-900 rounded-xl p-4 mb-6 text-center">
+<div class="text-xs muted">الوقت المتبقي للجولة الانتخابية</div>
+<div id="timer" class="text-3xl gold font-black mt-2">24:00:00</div>
+</div>
+<form id="candidateForm" class="space-y-3 mb-8">
+<label class="text-sm">اسم المرشح</label>
+<input id="candidateName" readonly placeholder="يجب إنشاء ملف مواطن أولاً">
+<label class="text-sm">الوزارة</label>
+<select id="candidateMinistry">
+<option>وزارة البيئة والخدمات</option>
+<option>وزارة التكافل الاجتماعي</option>
+<option>وزارة الأنشطة والتعاون</option>
+<option>وزارة الإعلام والتطوير</option>
+</select>
+<label class="text-sm">البرنامج الانتخابي</label>
+<textarea id="candidateProgram" rows="3" required placeholder="اكتب خطتك لخدمة المواطنين"></textarea>
+<button class="btn btn-gold w-full">تقديم طلب الترشح</button>
+</form>
+<h3 class="gold font-bold mb-4">المرشحون</h3>
+<div id="candidatesList" class="space-y-3"></div>
+<button id="nextElectionBtn" class="btn btn-blue mt-5 hidden" onclick="startNewElection()">بدء جولة انتخابية جديدة</button>
+</div>
+</section>
+
+<!-- MESSAGES -->
+<section id="messages" class="section">
+<div class="panel p-6 max-w-3xl mx-auto">
+<h2 class="text-2xl gold font-black mb-2">✉️ مراسلات الوزارات</h2>
+<p class="text-sm muted mb-5">أرسل طلبك إلى الوزارة المختصة وتابع الرد.</p>
+<form id="messageForm" class="space-y-3">
+<label class="text-sm">الوزارة المستقبلة</label>
+<select id="messageMinistry">
+<option>وزارة البيئة والخدمات</option>
+<option>وزارة التكافل الاجتماعي</option>
+<option>وزارة الأنشطة والتعاون</option>
+<option>وزارة الإعلام والتطوير</option>
+</select>
+<label class="text-sm">موضوع الرسالة</label>
+<input id="messageSubject" required maxlength="100" placeholder="موضوع الطلب">
+<label class="text-sm">تفاصيل الرسالة</label>
+<textarea id="messageBody" rows="4" required maxlength="2000" placeholder="اكتب رسالتك للوزارة..."></textarea>
+<button class="btn btn-gold w-full">إرسال إلى الوزارة</button>
+</form>
+<h3 class="gold font-bold mt-8 mb-4">رسائلي والردود</h3>
+<div id="myMessages" class="space-y-3"></div>
+</div>
+</section>
+
+<!-- MINISTER PANEL -->
+<section id="ministerPanel" class="section">
+<div class="panel p-6">
+<h2 class="text-2xl gold font-black mb-2">👑 لوحة الوزير</h2>
+<p class="text-sm muted mb-5">هذه اللوحة مخصصة للوزير الفائز في الوزارة المرتبطة بحسابه.</p>
+<div id="ministerContent">يجب تسجيل الدخول باسم الوزير المنتخب لعرض الطلبات.</div>
+</div>
+</section>
+
 </main>
 
-<!-- نافذة اللعب -->
-<div id="gameModal" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-xl flex-col p-3 md:p-6">
-
-<div class="flex items-center justify-between border-b border-slate-800 pb-3">
-<div class="flex items-center gap-3">
-<i class="fa-brands fa-playstation text-blue-500 text-2xl"></i>
-<div>
-<h3 id="modalGameTitle" class="font-bold text-white">اللعبة</h3>
-<p class="text-xs text-slate-500">وضع الشاشة الطويلة (Portrait Mode)</p>
-</div>
-</div>
-
-<div class="flex items-center gap-4">
-<button id="fullscreenBtn" class="text-slate-400 hover:text-white text-xl" title="ملء الشاشة">
-<i class="fa-solid fa-expand"></i>
-</button>
-<button id="closeBtn" class="text-red-500 hover:text-red-400 text-2xl" title="إغلاق">
-<i class="fa-solid fa-xmark"></i>
-</button>
-</div>
-</div>
-
-<div id="gameArea" class="relative flex-1 min-h-0 my-3 bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center">
-<canvas id="gameCanvas"></canvas>
-
-<div id="mobileControls" class="absolute bottom-4 left-3 right-3 flex justify-between items-end md:hidden">
-<div class="grid grid-cols-3 gap-1">
-<div></div>
-<button class="control-btn" data-action="UP"><i class="fa-solid fa-caret-up"></i></button>
-<div></div>
-<button class="control-btn" data-action="LEFT"><i class="fa-solid fa-caret-left"></i></button>
-<div></div>
-<button class="control-btn" data-action="RIGHT"><i class="fa-solid fa-caret-right"></i></button>
-<div></div>
-<button class="control-btn" data-action="DOWN"><i class="fa-solid fa-caret-down"></i></button>
-<div></div>
-</div>
-
-<div class="grid grid-cols-2 gap-2">
-<button class="action-btn bg-blue-600" data-action="ACTION_X">✕</button>
-<button class="action-btn bg-red-600" data-action="ACTION_O">◯</button>
-<button class="action-btn bg-pink-600" data-action="ACTION_SQ">▢</button>
-<button class="action-btn bg-green-600" data-action="ACTION_TR">△</button>
-</div>
-</div>
-
-<div class="absolute top-3 right-3 bg-black/70 rounded-lg px-3 py-2 text-xs text-white">
-النقاط: <span id="score">0</span> | <span class="text-blue-400 font-mono">Portrait Mode</span>
-</div>
-</div>
-
-<div class="flex items-center justify-between gap-2 text-xs text-slate-400 border-t border-slate-800 pt-3">
-<p>الأسهم للتحرك و Space لجمع النجوم. يدعم ذراع التحكم.</p>
-<button id="restartBtn" class="bg-blue-600 px-4 py-2 rounded-lg text-white font-bold">
-<i class="fa-solid fa-rotate-right ml-1"></i> إعادة اللعب
-</button>
-</div>
-</div>
-
-<footer class="bg-slate-900/60 border-t border-slate-800 py-6 text-center text-slate-500 text-sm">
-تم التطوير بواسطة <span class="text-blue-400 font-bold">عبده</span>
-© 2026 - PlayCloud PS
+<footer class="border-t border-slate-700 text-center p-6 text-xs muted">
+دولة الأورشاليم المستقلة • الحكومة الرقمية • تصميم وتطوير عبده
+<p class="mt-2">مشروع افتراضي غير تابع لأي حكومة أو دولة معترف بها.</p>
 </footer>
 
 <script>
-"use strict";
+const K={
+citizens:'ors_state_citizens_v1',
+user:'ors_state_user_v1',
+candidates:'ors_state_candidates_v1',
+votes:'ors_state_votes_v1',
+ministers:'ors_state_ministers_v1',
+messages:'ors_state_messages_v1',
+end:'ors_state_election_end_v1',
+finished:'ors_state_finished_v1'
+};
 
-/* قاعدة الألعاب */
-const games = [
-{id:1,title:"eFootball 2026",category:"sports",rating:"4.9",icon:"fa-futbol",bg:"from-blue-600 to-indigo-900",color:"#0070d1"},
-{id:2,title:"Spider-Man PS5",category:"action",rating:"4.8",icon:"fa-spider",bg:"from-red-600 to-slate-900",color:"#e11d48"},
-{id:3,title:"God of War Ragnarök",category:"action",rating:"5.0",icon:"fa-shield-halved",bg:"from-slate-700 to-blue-950",color:"#38bdf8"},
-{id:4,title:"Need for Speed Unbound",category:"racing",rating:"4.7",icon:"fa-car-side",bg:"from-amber-500 to-slate-900",color:"#f59e0b"},
-{id:5,title:"EA Sports FC 26",category:"sports",rating:"4.9",icon:"fa-trophy",bg:"from-emerald-600 to-slate-900",color:"#10b981"},
-{id:6,title:"GTA V Cloud Edition",category:"action",rating:"4.9",icon:"fa-mask",bg:"from-purple-600 to-slate-900",color:"#a855f7"},
-{id:7,title:"Gran Turismo 7",category:"racing",rating:"4.8",icon:"fa-gauge-high",bg:"from-cyan-600 to-slate-900",color:"#06b6d4"},
-{id:8,title:"Tekken 8",category:"action",rating:"4.7",icon:"fa-hand-fist",bg:"from-rose-600 to-slate-900",color:"#f43f5e"}
+const MINISTRIES=[
+{name:'وزارة البيئة والخدمات',icon:'🌿',desc:'الخدمات العامة والبيئة والنظافة والتشجير.'},
+{name:'وزارة التكافل الاجتماعي',icon:'❤️',desc:'التعاون الاجتماعي والفعاليات والمبادرات.'},
+{name:'وزارة الأنشطة والتعاون',icon:'⚽',desc:'الرياضة والأنشطة والفعاليات العامة.'},
+{name:'وزارة الإعلام والتطوير',icon:'💻',desc:'التقنية والإعلام والتطوير الرقمي.'}
 ];
 
-/* عناصر الصفحة */
-const $ = id => document.getElementById(id);
-const container = $("gamesContainer");
-const modal = $("gameModal");
-const canvas = $("gameCanvas");
-const ctx = canvas.getContext("2d");
+function get(key,def){
+try{
+let x=localStorage.getItem(key);
+return x===null?def:JSON.parse(x);
+}catch(e){return def}
+}
+function put(key,val){localStorage.setItem(key,JSON.stringify(val))}
+function esc(s){
+return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let citizens=get(K.citizens,[]);
+let currentId=localStorage.getItem(K.user)||null;
+let candidates=get(K.candidates,[]);
+let votes=get(K.votes,{});
+let ministers=get(K.ministers,{});
+let messages=get(K.messages,[]);
+let timerInterval=null;
 
-let selectedCategory = "all";
-let searchTerm = "";
-let currentGame = null;
-let animationId = null;
-let lastFrame = 0;
-let player = {x:100,y:100,size:14,speed:3.5};
-let star = {x:200,y:150,size:8};
-let score = 0;
-let keys = {};
-let gamepadConnected = false;
-let audioCtx = null;
-
-/* صوت بسيط */
-function beep(freq=440,duration=.07){
- try{
-  audioCtx ||= new (window.AudioContext || window.webkitAudioContext)();
-  if(audioCtx.state==="suspended") audioCtx.resume();
-  const osc=audioCtx.createOscillator();
-  const gain=audioCtx.createGain();
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.frequency.value=freq;
-  gain.gain.setValueAtTime(.07,audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);
-  osc.start();
-  osc.stop(audioCtx.currentTime+duration);
- }catch(e){}
+function currentCitizen(){return citizens.find(c=>c.id===currentId)||null}
+function currentMinisterMinistry(){
+let u=currentCitizen();
+if(!u)return null;
+return MINISTRIES.find(m=>ministers[m.name]&&ministers[m.name].name===u.name)||null;
 }
 
-/* عرض الألعاب */
-function renderGames(){
- const filtered=games.filter(game=>{
-  const categoryMatch=selectedCategory==="all" || game.category===selectedCategory;
-  const searchMatch=game.title.toLowerCase().includes(searchTerm.toLowerCase());
-  return categoryMatch && searchMatch;
- });
-
- container.innerHTML="";
- $("resultCount").textContent="عدد الألعاب: "+filtered.length;
- $("emptyMessage").classList.toggle("hidden",filtered.length!==0);
-
- filtered.forEach(game=>{
-  const card=document.createElement("article");
-  card.className="game-card bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden cursor-pointer";
-
-  const image=document.createElement("div");
-  image.className="h-44 bg-gradient-to-br "+game.bg+" flex items-center justify-center relative";
-
-  const icon=document.createElement("i");
-  icon.className="fa-solid "+game.icon+" text-6xl text-white/80";
-  image.appendChild(icon);
-
-  const rating=document.createElement("span");
-  rating.className="absolute top-3 left-3 bg-black/70 text-amber-400 text-xs px-3 py-1 rounded-full";
-  rating.innerHTML='<i class="fa-solid fa-star"></i> '+game.rating;
-  image.appendChild(rating);
-
-  const info=document.createElement("div");
-  info.className="p-4 flex items-center justify-between gap-2";
-
-  const text=document.createElement("div");
-  const title=document.createElement("h3");
-  title.className="font-bold text-white text-base";
-  title.textContent=game.title;
-
-  const desc=document.createElement("p");
-  desc.className="text-xs text-slate-500 mt-1";
-  desc.textContent="تجربة متصفح تجريبية";
-
-  text.append(title,desc);
-
-  const button=document.createElement("button");
-  button.className="bg-blue-600/20 text-blue-400 p-3 rounded-xl";
-  button.innerHTML='<i class="fa-solid fa-play"></i>';
-  button.setAttribute("aria-label","ابدأ اللعبة");
-
-  info.append(text,button);
-  card.append(image,info);
-  card.addEventListener("click",()=>launchGame(game));
-  container.appendChild(card);
- });
+function showSection(id,btn){
+document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
+if(btn)btn.classList.add('active');
+refresh();
+window.scrollTo({top:0,behavior:'smooth'});
 }
 
-/* البحث */
-function updateSearch(value){
- searchTerm=value.trim();
- $("searchInput").value=value;
- $("mobileSearch").value=value;
- renderGames();
+function refresh(){
+renderHeader();
+renderProfile();
+renderCitizens();
+renderMinistries();
+renderCandidates();
+renderMyMessages();
+renderMinisterPanel();
+document.getElementById('candidateName').value=currentCitizen()?.name||'';
 }
-$("searchInput").addEventListener("input",e=>updateSearch(e.target.value));
-$("mobileSearch").addEventListener("input",e=>updateSearch(e.target.value));
 
-/* التصنيفات */
-document.querySelectorAll(".category-btn").forEach(button=>{
- button.addEventListener("click",()=>{
-  selectedCategory=button.dataset.category;
-  document.querySelectorAll(".category-btn").forEach(b=>b.classList.remove("active"));
-  button.classList.add("active");
-  beep(600);
-  renderGames();
- });
+function renderHeader(){
+let u=currentCitizen();
+document.getElementById('userHeader').innerHTML=u?
+`<div class="gold font-bold">${esc(u.name)}</div><button onclick="logout()" class="text-xs text-red-300">تسجيل الخروج</button>`:
+'زائر • <button onclick="showSection(\'register\')" class="gold">إنشاء حساب</button>';
+}
+
+function logout(){
+currentId=null;
+localStorage.removeItem(K.user);
+refresh();
+alert('تم تسجيل الخروج');
+}
+
+document.getElementById('registerForm').addEventListener('submit',async e=>{
+e.preventDefault();
+let name=document.getElementById('regName').value.trim();
+let dob=document.getElementById('regDob').value;
+let place=document.getElementById('regBirthPlace').value.trim();
+let file=document.getElementById('regPhoto').files[0];
+if(!name||!dob||!place||!file)return;
+if(file.size>2*1024*1024){alert('حجم الصورة يجب ألا يتجاوز 2 ميجابايت');return}
+if(citizens.some(c=>c.name.toLowerCase()===name.toLowerCase())){
+alert('يوجد ملف مواطن بهذا الاسم بالفعل على هذا الجهاز.');return;
+}
+let photo=await new Promise((resolve,reject)=>{
+let reader=new FileReader();
+reader.onload=()=>resolve(reader.result);
+reader.onerror=reject;
+reader.readAsDataURL(file);
+});
+let id='OR-'+Date.now().toString().slice(-8)+'-'+Math.floor(100+Math.random()*900);
+let passport='OSP-'+Date.now().toString().slice(-8);
+let citizen={
+id,name,dob,place,photo,passport,
+created:new Date().toISOString()
+};
+citizens.push(citizen);
+put(K.citizens,citizens);
+currentId=id;
+localStorage.setItem(K.user,id);
+e.target.reset();
+refresh();
+showSection('profile');
+alert('تم إنشاء ملف المواطن بنجاح!');
 });
 
-/* فتح اللعبة */
-function launchGame(game){
- stopLoop();
- currentGame=game;
- $("modalGameTitle").textContent=game.title;
- modal.classList.add("open");
- modal.setAttribute("aria-hidden","false");
- resizeCanvas();
- resetGame();
- lastFrame=0;
- animationId=requestAnimationFrame(loop);
+function renderProfile(){
+let u=currentCitizen();
+let el=document.getElementById('profileContent');
+if(!u){el.innerHTML='سجّل بياناتك أولاً لإنشاء ملف المواطن.';return}
+el.innerHTML=`
+<img src="${u.photo}" class="avatar mx-auto mb-3">
+<h3 class="text-2xl gold font-black">${esc(u.name)}</h3>
+<span class="badge mt-2">مواطن مسجل في المنظومة الرقمية</span>
+<div class="grid md:grid-cols-2 gap-3 text-right mt-6">
+<div class="bg-slate-900 p-3 rounded-lg text-sm">رقم الهوية: <b class="gold">${esc(u.id)}</b></div>
+<div class="bg-slate-900 p-3 rounded-lg text-sm">رقم الجواز: <b class="gold">${esc(u.passport)}</b></div>
+<div class="bg-slate-900 p-3 rounded-lg text-sm">تاريخ الميلاد: ${esc(u.dob)}</div>
+<div class="bg-slate-900 p-3 rounded-lg text-sm">مكان الميلاد: ${esc(u.place)}</div>
+</div>
+<button class="btn btn-gold mt-5" onclick="showSection('documents')">عرض وثائقي</button>`;
 }
 
-/* إيقاف الرسم */
-function stopLoop(){
- if(animationId!==null){
-  cancelAnimationFrame(animationId);
-  animationId=null;
- }
+function renderDocument(type){
+let u=currentCitizen();
+if(!u){alert('أنشئ ملف مواطن أولاً');return}
+let html='';
+let title='',sub='';
+if(type==='id'){title='بطاقة الهوية الوطنية الرقمية';sub='DIGITAL CITIZEN ID'}
+if(type==='passport'){title='جواز دولة الأورشاليم';sub='ORSHALIM DIGITAL PASSPORT'}
+if(type==='birth'){title='شهادة ميلاد رمزية';sub='CIVIL REGISTRY CERTIFICATE'}
+let image=(type==='birth'?'':`<img src="${u.photo}" class="docphoto mx-auto mb-3">`);
+let fields=`
+<div class="docrow"><b>الاسم الكامل</b><span>${esc(u.name)}</span></div>
+<div class="docrow"><b>رقم الهوية</b><span>${esc(u.id)}</span></div>
+<div class="docrow"><b>تاريخ الميلاد</b><span>${esc(u.dob)}</span></div>
+<div class="docrow"><b>مكان الميلاد</b><span>${esc(u.place)}</span></div>`;
+if(type==='passport'){
+fields+=`<div class="docrow"><b>رقم الجواز</b><span>${esc(u.passport)}</span></div>
+<div class="docrow"><b>تاريخ الإصدار</b><span>${new Date(u.created).toLocaleDateString('ar-EG')}</span></div>
+<div class="docrow"><b>النوع</b><span>وثيقة رقمية رمزية</span></div>`;
+}
+if(type==='birth'){
+fields+=`<div class="docrow"><b>رقم الشهادة</b><span>BC-${esc(u.id)}</span></div>
+<div class="docrow"><b>السجل</b><span>السجل المدني الرقمي</span></div>`;
+}
+html=`
+<div class="doc">
+<div class="text-sm font-black tracking-widest text-amber-800">${sub}</div>
+<div class="seal">🏛️</div>
+<h2>${title}</h2>
+<div class="text-xs text-amber-800 mt-1 mb-5">دولة الأورشاليم المستقلة • المنظومة المدنية الرمزية</div>
+${image}
+${fields}
+<div class="seal mt-5">✦</div>
+<div class="flex justify-between text-xs mt-5 gap-3">
+<div>توقيع السجل المدني<br><b>إدارة السجل المدني</b></div>
+<div>ختم الدولة<br><b>الأورشاليم</b></div>
+</div>
+<div class="text-xs mt-6 text-slate-500">وثيقة رمزية داخل المشروع الرقمي وليست مستنداً حكومياً رسمياً.</div>
+</div>`;
+document.getElementById('documentView').innerHTML=html;
+}
+function printDocument(){
+if(!currentCitizen()){alert('أنشئ ملف مواطن أولاً');return}
+if(!document.getElementById('documentView').querySelector('.doc')){
+renderDocument('id');
+}
+window.print();
 }
 
-/* إعادة اللعبة */
-function resetGame(){
- player={x:canvas.width/2,y:canvas.height/2,size:14,speed:3.5};
- score=0;
- $("score").textContent=score;
- randomStar();
+function renderCitizens(){
+let q=(document.getElementById('citizenSearch')?.value||'').toLowerCase();
+let list=citizens.filter(c=>c.name.toLowerCase().includes(q)||c.id.toLowerCase().includes(q));
+document.getElementById('citizensList').innerHTML=list.length?list.map(c=>`
+<div class="panel p-4 flex items-center gap-3">
+<img src="${c.photo}" class="w-14 h-14 rounded-full object-cover border-2 border-yellow-600">
+<div><b>${esc(c.name)}</b><p class="text-xs muted mt-1">${esc(c.id)}</p></div>
+</div>`).join(''):'<div class="panel p-5 text-sm muted">لا يوجد مواطنون مطابقون للبحث.</div>';
 }
 
-/* ضبط مساحة الرسم: تحويل الشاشة لوضع الطولي Portrait (ارتفاع أكبر من العرض) */
-function resizeCanvas(){
- const targetWidth = 360; // العرض الثابت في الوضع الطولي
- const targetHeight = 640; // الارتفاع الطولي المخصص للموبايل والشاشات الطويلة
- 
- canvas.width = targetWidth;
- canvas.height = targetHeight;
- 
- ctx.imageSmoothingEnabled = false;
- player.x = canvas.width / 2;
- player.y = canvas.height / 2;
+function renderMinistries(){
+document.getElementById('ministriesList').innerHTML=MINISTRIES.map(m=>{
+let winner=ministers[m.name];
+return `<div class="panel p-5">
+<div class="text-3xl mb-3">${m.icon}</div>
+<h3 class="gold font-bold text-lg">${esc(m.name)}</h3>
+<p class="text-sm muted mt-2">${esc(m.desc)}</p>
+<div class="border-t border-slate-600 mt-4 pt-3 text-sm">
+${winner?`<b>${esc(winner.name)}</b><p class="text-xs text-emerald-400 mt-1">🏆 وزير منتخب</p>`:'<span class="muted">لم يُنتخب وزير لهذه الوزارة بعد</span>'}
+</div>
+</div>`;
+}).join('');
 }
 
-/* نجمة جديدة */
-function randomStar(){
- star={
-  x:20+Math.random()*(canvas.width-40),
-  y:20+Math.random()*(canvas.height-40),
-  size:8
- };
+// ELECTIONS
+function initializeElection(){
+let end=Number(localStorage.getItem(K.end));
+if(!end){
+end=Date.now()+86400000;
+localStorage.setItem(K.end,String(end));
+}
+if(timerInterval)clearInterval(timerInterval);
+updateTimer();
+timerInterval=setInterval(updateTimer,1000);
+}
+function updateTimer(){
+let end=Number(localStorage.getItem(K.end));
+let rem=end-Date.now();
+if(rem<=0){
+document.getElementById('timer').textContent='انتهت الجولة';
+finishElection();
+return;
+}
+let h=Math.floor(rem/3600000),m=Math.floor(rem%3600000/60000),s=Math.floor(rem%60000/1000);
+document.getElementById('timer').textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');
 }
 
-/* الرسم بالشاشة الطويلة */
-function loop(time){
- if(!currentGame || !modal.classList.contains("open")) return;
+document.getElementById('candidateForm').addEventListener('submit',e=>{
+e.preventDefault();
+let u=currentCitizen();
+if(!u){alert('أنشئ ملف مواطن أولاً');return}
+if(Date.now()>=Number(localStorage.getItem(K.end))){alert('انتهى وقت الترشح');return}
+let ministry=document.getElementById('candidateMinistry').value;
+let program=document.getElementById('candidateProgram').value.trim();
+if(candidates.some(c=>c.citizenId===u.id&&c.ministry===ministry)){
+alert('لقد ترشحت لهذه الوزارة بالفعل');return;
+}
+candidates.push({id:'C'+Date.now(),citizenId:u.id,name:u.name,ministry,program,votes:0});
+put(K.candidates,candidates);
+e.target.reset();
+refresh();
+alert('تم تقديم طلب الترشح بنجاح');
+});
 
- const width = canvas.width;
- const height = canvas.height;
- const delta=lastFrame?Math.min((time-lastFrame)/16.67,2):1;
- lastFrame=time;
-
- ctx.clearRect(0,0,width,height);
- ctx.fillStyle="#090d16";
- ctx.fillRect(0,0,width,height);
-
- /* شبكة الخلفية */
- ctx.strokeStyle="#1e293b";
- ctx.lineWidth=1;
- for(let x=0;x<width;x+=30){
-  ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,height);ctx.stroke();
- }
- for(let y=0;y<height;y+=30){
-  ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(width,y);ctx.stroke();
- }
-
- /* التحكم بالكيبورد */
- let dx=0,dy=0;
- if(keys.ArrowLeft||keys.a)dx--;
- if(keys.ArrowRight||keys.d)dx++;
- if(keys.ArrowUp||keys.w)dy--;
- if(keys.ArrowDown||keys.s)dy++;
-
- /* قراءة ذراع التحكم */
- const pads=navigator.getGamepads?navigator.getGamepads():[];
- const pad=pads?Array.from(pads).find(p=>p&&p.connected):null;
- if(pad){
-  if(Math.abs(pad.axes[0]||0)>.2)dx=pad.axes[0];
-  if(Math.abs(pad.axes[1]||0)>.2)dy=pad.axes[1];
-  if(pad.buttons[0]?.pressed)collectStar();
- }
-
- const length=Math.hypot(dx,dy)||1;
- player.x+=(dx/length)*player.speed*delta;
- player.y+=(dy/length)*player.speed*delta;
-
- player.x=Math.max(player.size,Math.min(width-player.size,player.x));
- player.y=Math.max(player.size,Math.min(height-player.size,player.y));
-
- /* النجمة */
- ctx.save();
- ctx.fillStyle="#facc15";
- ctx.font="20px Arial";
- ctx.textAlign="center";
- ctx.fillText("★",star.x,star.y+7);
- ctx.restore();
-
- /* اللاعب */
- ctx.save();
- ctx.fillStyle=currentGame.color;
- ctx.beginPath();
- ctx.arc(player.x,player.y,player.size,0,Math.PI*2);
- ctx.fill();
- ctx.fillStyle="#fff";
- ctx.font="bold 9px Tajawal";
- ctx.textAlign="center";
- ctx.textBaseline="middle";
- ctx.fillText("PS",player.x,player.y);
- ctx.restore();
-
- /* جمع النجمة */
- if(Math.hypot(player.x-star.x,player.y-star.y)<player.size+star.size){
-  collectStar();
- }
-
- animationId=requestAnimationFrame(loop);
+function renderCandidates(){
+let el=document.getElementById('candidatesList');
+let finished=localStorage.getItem(K.finished)==='yes';
+el.innerHTML=candidates.length?candidates.map(c=>{
+let already=currentId&&votes[currentId]!==undefined;
+return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
+<div class="flex justify-between gap-2"><b class="gold">${esc(c.name)}</b><span class="badge">${esc(c.ministry)}</span></div>
+<p class="text-sm text-slate-300 mt-2">${esc(c.program)}</p>
+<div class="flex justify-between items-center mt-3">
+<span class="text-xs muted">🗳️ ${c.votes} صوت</span>
+<button class="btn btn-gold text-xs" ${!currentId||already||finished?'disabled':''} onclick="vote('${c.id}')">${already?'تم التصويت':finished?'انتهت الجولة':'تصويت'}</button>
+</div></div>`;
+}).join(''):'<p class="muted text-sm">لا يوجد مرشحون حتى الآن. كن أول المرشحين!</p>';
+document.getElementById('nextElectionBtn').classList.toggle('hidden',!finished);
 }
 
-/* جمع النجوم */
-function collectStar(){
- score++;
- $("score").textContent=score;
- beep(800,.08);
- randomStar();
+function vote(id){
+if(!currentId){alert('سجل مواطناً أولاً');return}
+if(Date.now()>=Number(localStorage.getItem(K.end))){alert('انتهت الجولة');return}
+if(votes[currentId]!==undefined){alert('لقد أدليت بصوتك بالفعل');return}
+let c=candidates.find(x=>x.id===id);
+if(!c)return;
+c.votes++;
+votes[currentId]=id;
+put(K.candidates,candidates);
+put(K.votes,votes);
+renderCandidates();
+alert('تم تسجيل صوتك!');
 }
 
-/* التحكم باللمس */
-function touchAction(action){
- const step=18;
- if(action==="UP")player.y-=step;
- if(action==="DOWN")player.y+=step;
- if(action==="LEFT")player.x-=step;
- if(action==="RIGHT")player.x+=step;
- if(action.startsWith("ACTION"))collectStar();
- beep(500,.04);
+function finishElection(){
+if(localStorage.getItem(K.finished)==='yes')return;
+localStorage.setItem(K.finished,'yes');
+MINISTRIES.forEach(m=>{
+let list=candidates.filter(c=>c.ministry===m.name);
+if(list.length){
+list.sort((a,b)=>b.votes-a.votes);
+ministers[m.name]={name:list[0].name,citizenId:list[0].citizenId,term:Date.now()};
+}
+});
+put(K.ministers,ministers);
+renderMinistries();
+renderCandidates();
+alert('انتهت الجولة الانتخابية وتم إعلان الفائزين.');
 }
 
-document.querySelectorAll("[data-action]").forEach(button=>{
- button.addEventListener("pointerdown",e=>{
-  e.preventDefault();
-  touchAction(button.dataset.action);
- });
-});
-
-/* الكيبورد */
-window.addEventListener("keydown",e=>{
- if(!modal.classList.contains("open"))return;
- if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key))e.preventDefault();
- keys[e.key]=true;
- if(e.key===" " && !e.repeat)collectStar();
-});
-window.addEventListener("keyup",e=>{keys[e.key]=false});
-
-/* ذراع التحكم */
-window.addEventListener("gamepadconnected",e=>{
- gamepadConnected=true;
- $("gamepadText").textContent="تم توصيل الذراع";
- $("gamepadIcon").classList.add("text-green-400");
- beep(700);
-});
-window.addEventListener("gamepaddisconnected",()=>{
- gamepadConnected=false;
- $("gamepadText").textContent="تم فصل الذراع";
- $("gamepadIcon").classList.remove("text-green-400");
-});
-
-/* إغلاق اللعبة */
-function closeGame(){
- stopLoop();
- currentGame=null;
- keys={};
- modal.classList.remove("open");
- modal.setAttribute("aria-hidden","true");
- beep(300);
+function startNewElection(){
+if(!confirm('بدء جولة جديدة؟ سيتم تصفير أصوات المرشحين السابقين.'))return;
+candidates=[];
+votes={};
+localStorage.removeItem(K.finished);
+put(K.candidates,candidates);
+put(K.votes,votes);
+localStorage.setItem(K.end,String(Date.now()+86400000));
+initializeElection();
+refresh();
+alert('بدأت جولة انتخابية جديدة لمدة 24 ساعة.');
 }
-$("closeBtn").addEventListener("click",closeGame);
 
-/* إعادة اللعب */
-$("restartBtn").addEventListener("click",()=>{
- resetGame();
- beep(500);
+// MESSAGES
+document.getElementById('messageForm').addEventListener('submit',e=>{
+e.preventDefault();
+let u=currentCitizen();
+if(!u){alert('يجب إنشاء ملف مواطن لإرسال الرسائل');return}
+messages.push({
+id:'M'+Date.now(),
+citizenId:u.id,
+name:u.name,
+ministry:document.getElementById('messageMinistry').value,
+subject:document.getElementById('messageSubject').value.trim(),
+body:document.getElementById('messageBody').value.trim(),
+reply:'',
+status:'وصل إلى الوزارة',
+date:new Date().toLocaleString('ar-EG')
+});
+put(K.messages,messages);
+e.target.reset();
+renderMyMessages();
+alert('تم إرسال رسالتك إلى الوزارة المختصة.');
 });
 
-/* ملء الشاشة */
-$("fullscreenBtn").addEventListener("click",async()=>{
- try{
-  if(!document.fullscreenElement){
-   await $("gameArea").requestFullscreen();
-  }else{
-   await document.exitFullscreen();
-  }
- }catch(e){
-  alert("متصفحك لا يدعم وضع ملء الشاشة.");
- }
-});
+function renderMyMessages(){
+let u=currentCitizen();
+let list=document.getElementById('myMessages');
+if(!u){list.innerHTML='<p class="muted text-sm">سجّل الدخول لعرض مراسلاتك.</p>';return}
+let mine=messages.filter(m=>m.citizenId===u.id);
+list.innerHTML=mine.length?mine.slice().reverse().map(m=>`
+<div class="bg-slate-900 p-4 rounded-xl">
+<b class="gold">${esc(m.ministry)}</b>
+<p class="font-bold mt-2">${esc(m.subject)}</p>
+<p class="text-sm text-slate-300 mt-2">${esc(m.body)}</p>
+<p class="text-xs muted mt-2">${esc(m.date)} • ${esc(m.status)}</p>
+${m.reply?`<div class="mt-3 border-r-2 border-emerald-500 pr-3"><b class="text-emerald-400 text-sm">رد الوزارة</b><p class="text-sm mt-1">${esc(m.reply)}</p></div>`:'<p class="text-xs text-amber-400 mt-2">بانتظار رد الوزارة</p>'}
+</div>`).join(''):'<p class="muted text-sm">ليس لديك مراسلات بعد.</p>';
+}
 
-/* تغيير حجم الشاشة */
-window.addEventListener("resize",()=>{
- if(modal.classList.contains("open"))resizeCanvas();
-});
+function renderMinisterPanel(){
+let u=currentCitizen();
+let ministry=currentMinisterMinistry();
+let el=document.getElementById('ministerContent');
+if(!u){el.innerHTML='أنشئ ملف مواطن وسجل الدخول أولاً.';return}
+if(!ministry){el.innerHTML='<p class="muted">هذا الحساب ليس مرتبطاً بوزير منتخب حالياً. تظهر لوحة الوزير فقط لحساب المواطن الفائز بالانتخابات.</p>';return}
+let inbox=messages.filter(m=>m.ministry===ministry.name);
+el.innerHTML=`<h3 class="gold text-xl font-bold mb-4">${esc(ministry.name)} • ${esc(u.name)}</h3>
+<p class="text-sm text-emerald-400 mb-4">🏆 حساب الوزير المنتخب</p>
+${inbox.length?inbox.map(m=>`
+<div class="bg-slate-900 p-4 rounded-xl mb-4">
+<b>${esc(m.subject)}</b>
+<p class="text-xs muted mt-1">من المواطن: ${esc(m.name)}</p>
+<p class="text-sm text-slate-300 mt-3">${esc(m.body)}</p>
+<p class="text-xs muted mt-2">${esc(m.date)} • ${esc(m.status)}</p>
+<textarea id="reply-${m.id}" rows="2" class="mt-3" placeholder="اكتب رد الوزارة...">${esc(m.reply||'')}</textarea>
+<button class="btn btn-green mt-2" onclick="replyMessage('${m.id}')">إرسال رد الوزارة</button>
+</div>`).join(''):'<p class="muted text-sm">لا توجد رسائل لهذه الوزارة حتى الآن.</p>'}`;
+}
 
-/* زر البداية */
-$("startBtn").addEventListener("click",()=>{
- $("gamesContainer").scrollIntoView({behavior:"smooth"});
-});
+function replyMessage(id){
+let u=currentCitizen();
+let ministry=currentMinisterMinistry();
+if(!u||!ministry){alert('ليس لديك صلاحية الوزير');return}
+let m=messages.find(x=>x.id===id);
+if(!m||m.ministry!==ministry.name)return;
+let reply=document.getElementById('reply-'+id).value.trim();
+if(!reply){alert('اكتب الرد أولاً');return}
+m.reply=reply;
+m.status='تم الرد من الوزارة';
+put(K.messages,messages);
+renderMinisterPanel();
+alert('تم إرسال الرد إلى المواطن.');
+}
 
-/* منع استمرار اللعبة عند إخفاء الصفحة */
-document.addEventListener("visibilitychange",()=>{
- if(document.hidden)stopLoop();
- else if(currentGame&&modal.classList.contains("open")&&animationId===null){
-  lastFrame=0;
-  animationId=requestAnimationFrame(loop);
- }
+document.addEventListener('DOMContentLoaded',()=>{
+refresh();
+initializeElection();
 });
-
-/* إغلاق بزر Escape */
-window.addEventListener("keydown",e=>{
- if(e.key==="Escape"&&modal.classList.contains("open")&&!document.fullscreenElement){
-  closeGame();
- }
-});
-
-/* التشغيل الأول */
-renderGames();
 </script>
 </body>
 </html>
