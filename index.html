@@ -1,612 +1,685 @@
+extends Control
 
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#0F172A">
-<title>دولة الأورشاليم المستقلة | الحكومة الرقمية</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-<style>
-*{box-sizing:border-box}
-body{margin:0;background:#0b1224;color:#f8fafc;font-family:Cairo,sans-serif}
-.gold{color:#D4AF37}
-.goldbg{background:#D4AF37;color:#111827}
-.panel{background:#17243b;border:1px solid #34415a;border-radius:17px}
-input,select,textarea{width:100%;background:#0d172b;color:white;border:1px solid #3b4962;border-radius:10px;padding:12px;font-family:inherit;outline:none}
-input:focus,select:focus,textarea:focus{border-color:#D4AF37}
-button{cursor:pointer;font-family:inherit}
-.btn{padding:11px 17px;border-radius:10px;font-weight:bold}
-.btn-gold{background:#D4AF37;color:#111827}
-.btn-blue{background:#2563eb;color:white}
-.btn-green{background:#15803d;color:white}
-.btn-red{background:#991b1b;color:white}
-.muted{color:#9caec5}
-.navbtn{padding:10px 13px;border-radius:10px;background:#1e2d46;color:#dce5f5;font-size:13px}
-.navbtn.active{background:#D4AF37;color:#111827;font-weight:bold}
-.section{display:none}
-.section.active{display:block}
-.doc{background:#fff;color:#172033;border:5px double #c19a32;border-radius:8px;padding:20px;text-align:center;position:relative;overflow:hidden}
-.doc h2{color:#96711d;font-size:23px;font-weight:900}
-.doc .seal{width:75px;height:75px;border:3px double #b58c2c;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:15px auto;color:#a17a20;font-size:27px}
-.doc .docphoto{width:100px;height:120px;object-fit:cover;border:3px solid #bd983c;border-radius:7px}
-.docrow{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #ddd;padding:9px 0;text-align:right;font-size:13px}
-.docrow b{color:#96711d}
-.avatar{width:85px;height:85px;border-radius:50%;object-fit:cover;border:3px solid #D4AF37}
-.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;background:#334155;color:#e2e8f0}
-.cardicon{font-size:28px;color:#D4AF37;margin-bottom:12px}
-@media print{
-body{background:white!important;color:black!important}
-body *{visibility:hidden!important}
-#printArea,#printArea *{visibility:visible!important}
-#printArea{display:block!important;position:absolute;left:0;top:0;width:100%;padding:15px}
-.doc{border:5px double #a17a20!important;min-height:550px}
-.no-print{display:none!important}
-}
-</style>
-</head>
-<body>
+const SAVE_PATH := "user://general_save.json"
 
-<!-- HEADER -->
-<header class="panel rounded-none border-x-0 border-t-0 p-4 sticky top-0 z-50">
-<div class="max-w-6xl mx-auto flex justify-between items-center gap-3">
-<div class="flex items-center gap-3">
-<div class="w-12 h-12 rounded-full goldbg flex items-center justify-center text-2xl">🏛️</div>
-<div>
-<h1 class="font-black text-base md:text-xl gold">دولة الأورشاليم المستقلة</h1>
-<p class="text-xs muted">الحكومة الرقمية • بوابة المواطنين</p>
-</div>
-</div>
-<div id="userHeader" class="text-xs text-right muted">زائر</div>
-</div>
-</header>
+var player_name := ""
+var nation := "مصر"
+var gold := 1200
+var food := 900
+var wood := 600
+var turn := 1
+var selected_city: int = -1
+var cities: Array[Dictionary] = []
+var screen_mode := "lobby"
+var map_zoom := 1.0
+var map_offset := Vector2.ZERO
+var dragging := false
+var drag_start := Vector2.ZERO
+var offset_start := Vector2.ZERO
 
-<!-- HERO -->
-<section class="text-center py-12 px-5 bg-gradient-to-b from-blue-950 to-transparent">
-<div class="text-5xl mb-4">👑</div>
-<div class="badge mb-4">المنظومة الوطنية الرقمية</div>
-<h2 class="text-3xl md:text-5xl font-black gold mb-4">أهلاً بكم في دولة الأورشاليم</h2>
-<p class="text-slate-300 max-w-2xl mx-auto text-sm md:text-base leading-8">
-دولة رقمية مستقلة في إدارتها الداخلية، تجمع المواطنين في منظومة واحدة من الهوية والخدمات والوزارات والانتخابات.
-</p>
-<div class="mt-6 flex justify-center gap-3 flex-wrap">
-<button class="btn btn-gold" onclick="showSection('register')">إنشاء هوية مواطن</button>
-<button class="btn bg-slate-700 text-white" onclick="showSection('profile')">ملفي الشخصي</button>
-</div>
-</section>
+var ui: Control
+var map_panel: Control
+var city_panel: Panel
+var log_box: RichTextLabel
+var city_buttons: Array[Button] = []
+var resources_label: Label
+var nation_label_ui: Label
+var event_lines: Array[String] = []
+var drag_moved := false
 
-<!-- NAVIGATION -->
-<nav class="max-w-6xl mx-auto px-4 py-4 flex gap-2 overflow-x-auto no-print">
-<button class="navbtn active" onclick="showSection('home',this)">الرئيسية</button>
-<button class="navbtn" onclick="showSection('register',this)">التسجيل</button>
-<button class="navbtn" onclick="showSection('profile',this)">ملفي</button>
-<button class="navbtn" onclick="showSection('documents',this)">وثائقي</button>
-<button class="navbtn" onclick="showSection('citizens',this)">السجل المدني</button>
-<button class="navbtn" onclick="showSection('ministries',this)">الوزارات</button>
-<button class="navbtn" onclick="showSection('elections',this)">الانتخابات</button>
-<button class="navbtn" onclick="showSection('messages',this)">المراسلات</button>
-<button class="navbtn" onclick="showSection('ministerPanel',this)">لوحة الوزير</button>
-</nav>
+const CITY_DATA := [
+	{"name":"القاهرة", "pos":Vector2(0.12,0.40), "owner":"player", "army":260, "level":1},
+	{"name":"الإسكندرية", "pos":Vector2(0.08,0.27), "owner":"player", "army":180, "level":1},
+	{"name":"الرياض", "pos":Vector2(0.40,0.43), "owner":"neutral", "army":150, "level":1},
+	{"name":"إسطنبول", "pos":Vector2(0.32,0.18), "owner":"enemy", "army":220, "level":1},
+	{"name":"دمشق", "pos":Vector2(0.27,0.32), "owner":"neutral", "army":130, "level":1},
+	{"name":"بغداد", "pos":Vector2(0.48,0.32), "owner":"enemy", "army":210, "level":1},
+	{"name":"طرابلس", "pos":Vector2(0.02,0.42), "owner":"neutral", "army":100, "level":1},
+	{"name":"القدس", "pos":Vector2(0.22,0.37), "owner":"neutral", "army":120, "level":1},
+	{"name":"أنقرة", "pos":Vector2(0.39,0.22), "owner":"enemy", "army":160, "level":1},
+	{"name":"مكة", "pos":Vector2(0.36,0.57), "owner":"neutral", "army":140, "level":1},
+	{"name":"الخرطوم", "pos":Vector2(0.18,0.63), "owner":"neutral", "army":110, "level":1},
+	{"name":"أثينا", "pos":Vector2(0.24,0.17), "owner":"neutral", "army":140, "level":1}
+]
 
-<main class="max-w-6xl mx-auto px-4 pb-16">
+func _ready() -> void:
+	get_tree().set_auto_accept_quit(false)
+	_build_lobby()
 
-<!-- HOME -->
-<section id="home" class="section active">
-<h3 class="text-2xl font-black gold mb-5">🏛️ مؤسسات الدولة</h3>
-<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-<div class="panel p-5 text-center"><div class="cardicon">🪪</div><b>الهوية الوطنية</b><p class="text-xs muted mt-2">بطاقة رقمية لكل مواطن</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">📘</div><b>جواز الدولة</b><p class="text-xs muted mt-2">جواز رمزي للمواطن</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">📜</div><b>السجل المدني</b><p class="text-xs muted mt-2">شهادات الميلاد والبيانات</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">🗳️</div><b>الانتخابات</b><p class="text-xs muted mt-2">اختيار الوزراء بالتصويت</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">🌿</div><b>وزارة البيئة والخدمات</b><p class="text-xs muted mt-2">الخدمات العامة والبيئة</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">❤️</div><b>وزارة التكافل</b><p class="text-xs muted mt-2">المساعدة والتعاون</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">⚽</div><b>وزارة الأنشطة</b><p class="text-xs muted mt-2">الرياضة والفعاليات</p></div>
-<div class="panel p-5 text-center"><div class="cardicon">💻</div><b>وزارة الإعلام والتطوير</b><p class="text-xs muted mt-2">التقنية والإعلام</p></div>
-</div>
-<div class="panel p-6 mt-6">
-<h3 class="gold font-bold text-xl mb-3">📢 إعلان الدولة</h3>
-<p class="text-sm text-slate-300 leading-8">
-تقوم المنظومة على المشاركة والتعاون والانتخاب. لكل مواطن هوية رقمية، ولكل وزارة اختصاص واضح، وتدار الخدمات من خلال المؤسسات الأربع.
-</p>
-</div>
-</section>
+func _clear_ui() -> void:
+	for child in get_children():
+		child.queue_free()
 
-<!-- REGISTER -->
-<section id="register" class="section">
-<div class="panel p-6 max-w-2xl mx-auto">
-<h2 class="text-2xl gold font-black mb-2">🪪 تسجيل مواطن جديد</h2>
-<p class="muted text-sm mb-6">أنشئ ملفك المدني واحصل على وثائقك الرمزية.</p>
-<form id="registerForm" class="space-y-4">
-<div><label class="text-sm">الاسم الكامل</label><input id="regName" required maxlength="60" placeholder="اكتب اسمك الكامل"></div>
-<div><label class="text-sm">تاريخ الميلاد</label><input id="regDob" type="date" required></div>
-<div><label class="text-sm">مكان الميلاد</label><input id="regBirthPlace" required placeholder="مكان الميلاد"></div>
-<div><label class="text-sm">صورة شخصية</label><input id="regPhoto" type="file" accept="image/*" required></div>
-<div class="text-xs muted">ارفع صورة واضحة، وستظهر في بطاقتك وجوازك.</div>
-<button class="btn btn-gold w-full">إنشاء ملف المواطن</button>
-</form>
-</div>
-</section>
+func _full_background(parent: Control, color: Color) -> ColorRect:
+	var bg := ColorRect.new()
+	bg.color = color
+	bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(bg)
+	return bg
 
-<!-- PROFILE -->
-<section id="profile" class="section">
-<h2 class="text-2xl gold font-black mb-5">👤 ملف المواطن</h2>
-<div id="profileContent" class="panel p-6 text-center">سجّل بياناتك أولاً.</div>
-</section>
+func _make_label(parent: Control, text: String, size: int, color: Color = Color.WHITE) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", size)
+	label.add_theme_color_override("font_color", color)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	parent.add_child(label)
+	return label
 
-<!-- DOCUMENTS -->
-<section id="documents" class="section">
-<h2 class="text-2xl gold font-black mb-5">📚 وثائق المواطن</h2>
-<div class="flex flex-wrap gap-2 mb-5 no-print">
-<button class="btn btn-gold" onclick="renderDocument('id')">بطاقة الهوية</button>
-<button class="btn btn-gold" onclick="renderDocument('passport')">جواز الدولة</button>
-<button class="btn btn-gold" onclick="renderDocument('birth')">شهادة الميلاد</button>
-<button class="btn bg-slate-700 text-white" onclick="printDocument()">طباعة / حفظ PDF</button>
-</div>
-<div id="printArea"><div id="documentView" class="text-center muted p-10">اختر الوثيقة لعرضها.</div></div>
-<p class="text-xs muted mt-4 no-print">هذه وثائق رمزية خاصة بالمشروع، وليست مستندات حكومية أو وثائق سفر رسمية.</p>
-</section>
+func _make_button(parent: Control, text: String, callback: Callable, height: int = 58) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.custom_minimum_size = Vector2(0, height)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	button.add_theme_font_size_override("font_size", 22)
+	button.add_theme_color_override("font_color", Color("#f8f1df"))
+	button.add_theme_stylebox_override("normal", _stylebox(Color("#253b4b"), Color("#c89c3d"), 2, 12))
+	button.add_theme_stylebox_override("hover", _stylebox(Color("#35566a"), Color("#e5bd58"), 2, 12))
+	button.add_theme_stylebox_override("pressed", _stylebox(Color("#182936"), Color("#e5bd58"), 2, 12))
+	button.pressed.connect(callback)
+	parent.add_child(button)
+	return button
 
-<!-- CITIZENS -->
-<section id="citizens" class="section">
-<h2 class="text-2xl gold font-black mb-5">📋 السجل المدني</h2>
-<div class="panel p-4 mb-4">
-<input id="citizenSearch" placeholder="ابحث بالاسم أو رقم الهوية..." oninput="renderCitizens()">
-</div>
-<div id="citizensList" class="grid md:grid-cols-2 gap-3"></div>
-</section>
+func _stylebox(bg: Color, border: Color, border_width: int, radius: int) -> StyleBoxFlat:
+	var s := StyleBoxFlat.new()
+	s.bg_color = bg
+	s.border_color = border
+	s.set_border_width_all(border_width)
+	s.set_corner_radius_all(radius)
+	s.content_margin_left = 14
+	s.content_margin_right = 14
+	s.content_margin_top = 8
+	s.content_margin_bottom = 8
+	return s
 
-<!-- MINISTRIES -->
-<section id="ministries" class="section">
-<h2 class="text-2xl gold font-black mb-5">🏛️ الوزارات الأربع</h2>
-<div id="ministriesList" class="grid md:grid-cols-2 gap-4"></div>
-</section>
+func _build_lobby() -> void:
+	screen_mode = "lobby"
+	_clear_ui()
+	_full_background(self, Color("#0b141c"))
 
-<!-- ELECTIONS -->
-<section id="elections" class="section">
-<div class="panel p-6">
-<h2 class="text-2xl gold font-black mb-2">🗳️ الانتخابات العامة</h2>
-<p class="text-sm muted mb-4">ترشح لمنصب وزير في إحدى الوزارات الأربع، وقدم برنامجك للمواطنين.</p>
-<div class="bg-slate-900 rounded-xl p-4 mb-6 text-center">
-<div class="text-xs muted">الوقت المتبقي للجولة الانتخابية</div>
-<div id="timer" class="text-3xl gold font-black mt-2">24:00:00</div>
-</div>
-<form id="candidateForm" class="space-y-3 mb-8">
-<label class="text-sm">اسم المرشح</label>
-<input id="candidateName" readonly placeholder="يجب إنشاء ملف مواطن أولاً">
-<label class="text-sm">الوزارة</label>
-<select id="candidateMinistry">
-<option>وزارة البيئة والخدمات</option>
-<option>وزارة التكافل الاجتماعي</option>
-<option>وزارة الأنشطة والتعاون</option>
-<option>وزارة الإعلام والتطوير</option>
-</select>
-<label class="text-sm">البرنامج الانتخابي</label>
-<textarea id="candidateProgram" rows="3" required placeholder="اكتب خطتك لخدمة المواطنين"></textarea>
-<button class="btn btn-gold w-full">تقديم طلب الترشح</button>
-</form>
-<h3 class="gold font-bold mb-4">المرشحون</h3>
-<div id="candidatesList" class="space-y-3"></div>
-<button id="nextElectionBtn" class="btn btn-blue mt-5 hidden" onclick="startNewElection()">بدء جولة انتخابية جديدة</button>
-</div>
-</section>
+	var root := VBoxContainer.new()
+	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_theme_constant_override("separation", 16)
+	root.add_theme_constant_override("margin_left", 28)
+	root.add_theme_constant_override("margin_right", 28)
+	root.add_theme_constant_override("margin_top", 36)
+	root.add_theme_constant_override("margin_bottom", 36)
+	add_child(root)
 
-<!-- MESSAGES -->
-<section id="messages" class="section">
-<div class="panel p-6 max-w-3xl mx-auto">
-<h2 class="text-2xl gold font-black mb-2">✉️ مراسلات الوزارات</h2>
-<p class="text-sm muted mb-5">أرسل طلبك إلى الوزارة المختصة وتابع الرد.</p>
-<form id="messageForm" class="space-y-3">
-<label class="text-sm">الوزارة المستقبلة</label>
-<select id="messageMinistry">
-<option>وزارة البيئة والخدمات</option>
-<option>وزارة التكافل الاجتماعي</option>
-<option>وزارة الأنشطة والتعاون</option>
-<option>وزارة الإعلام والتطوير</option>
-</select>
-<label class="text-sm">موضوع الرسالة</label>
-<input id="messageSubject" required maxlength="100" placeholder="موضوع الطلب">
-<label class="text-sm">تفاصيل الرسالة</label>
-<textarea id="messageBody" rows="4" required maxlength="2000" placeholder="اكتب رسالتك للوزارة..."></textarea>
-<button class="btn btn-gold w-full">إرسال إلى الوزارة</button>
-</form>
-<h3 class="gold font-bold mt-8 mb-4">رسائلي والردود</h3>
-<div id="myMessages" class="space-y-3"></div>
-</div>
-</section>
+	var title := _make_label(root, "⚔️ الجنرال", 38, Color("#e7bc51"))
+	title.custom_minimum_size.y = 90
 
-<!-- MINISTER PANEL -->
-<section id="ministerPanel" class="section">
-<div class="panel p-6">
-<h2 class="text-2xl gold font-black mb-2">👑 لوحة الوزير</h2>
-<p class="text-sm muted mb-5">هذه اللوحة مخصصة للوزير الفائز في الوزارة المرتبطة بحسابه.</p>
-<div id="ministerContent">يجب تسجيل الدخول باسم الوزير المنتخب لعرض الطلبات.</div>
-</div>
-</section>
+	var subtitle := _make_label(root, "صراع الدول والمدن", 23, Color("#c5d3dc"))
+	subtitle.custom_minimum_size.y = 45
 
-</main>
+	var name_input := LineEdit.new()
+	name_input.placeholder_text = "اكتب اسم القائد"
+	name_input.custom_minimum_size.y = 58
+	name_input.add_theme_font_size_override("font_size", 22)
+	name_input.text = player_name
+	root.add_child(name_input)
 
-<footer class="border-t border-slate-700 text-center p-6 text-xs muted">
-دولة الأورشاليم المستقلة • الحكومة الرقمية • تصميم وتطوير عبده
-<p class="mt-2">مشروع افتراضي غير تابع لأي حكومة أو دولة معترف بها.</p>
-</footer>
+	var nation_label := _make_label(root, "اختر دولتك", 22, Color("#e7bc51"))
+	nation_label.custom_minimum_size.y = 45
 
-<script>
-const K={
-citizens:'ors_state_citizens_v1',
-user:'ors_state_user_v1',
-candidates:'ors_state_candidates_v1',
-votes:'ors_state_votes_v1',
-ministers:'ors_state_ministers_v1',
-messages:'ors_state_messages_v1',
-end:'ors_state_election_end_v1',
-finished:'ors_state_finished_v1'
-};
+	var nation_select := OptionButton.new()
+	nation_select.custom_minimum_size.y = 58
+	nation_select.add_theme_font_size_override("font_size", 21)
 
-const MINISTRIES=[
-{name:'وزارة البيئة والخدمات',icon:'🌿',desc:'الخدمات العامة والبيئة والنظافة والتشجير.'},
-{name:'وزارة التكافل الاجتماعي',icon:'❤️',desc:'التعاون الاجتماعي والفعاليات والمبادرات.'},
-{name:'وزارة الأنشطة والتعاون',icon:'⚽',desc:'الرياضة والأنشطة والفعاليات العامة.'},
-{name:'وزارة الإعلام والتطوير',icon:'💻',desc:'التقنية والإعلام والتطوير الرقمي.'}
-];
+	for n in ["مصر","السعودية","تركيا","العراق","فرنسا","ألمانيا","روسيا","اليابان"]:
+		nation_select.add_item(n)
 
-function get(key,def){
-try{
-let x=localStorage.getItem(key);
-return x===null?def:JSON.parse(x);
-}catch(e){return def}
-}
-function put(key,val){localStorage.setItem(key,JSON.stringify(val))}
-function esc(s){
-return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-let citizens=get(K.citizens,[]);
-let currentId=localStorage.getItem(K.user)||null;
-let candidates=get(K.candidates,[]);
-let votes=get(K.votes,{});
-let ministers=get(K.ministers,{});
-let messages=get(K.messages,[]);
-let timerInterval=null;
+	nation_select.select(0)
+	root.add_child(nation_select)
 
-function currentCitizen(){return citizens.find(c=>c.id===currentId)||null}
-function currentMinisterMinistry(){
-let u=currentCitizen();
-if(!u)return null;
-return MINISTRIES.find(m=>ministers[m.name]&&ministers[m.name].name===u.name)||null;
-}
+	var note := _make_label(root, "خريطة ومدن وجيش واحتلال وحفظ محلي", 17, Color("#9fb3c1"))
+	note.custom_minimum_size.y = 70
 
-function showSection(id,btn){
-document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-document.querySelectorAll('.navbtn').forEach(x=>x.classList.remove('active'));
-if(btn)btn.classList.add('active');
-refresh();
-window.scrollTo({top:0,behavior:'smooth'});
-}
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	root.add_child(spacer)
 
-function refresh(){
-renderHeader();
-renderProfile();
-renderCitizens();
-renderMinistries();
-renderCandidates();
-renderMyMessages();
-renderMinisterPanel();
-document.getElementById('candidateName').value=currentCitizen()?.name||'';
-}
+	_make_button(root, "ابدأ الحملة", func():
+		player_name = name_input.text.strip_edges()
 
-function renderHeader(){
-let u=currentCitizen();
-document.getElementById('userHeader').innerHTML=u?
-`<div class="gold font-bold">${esc(u.name)}</div><button onclick="logout()" class="text-xs text-red-300">تسجيل الخروج</button>`:
-'زائر • <button onclick="showSection(\'register\')" class="gold">إنشاء حساب</button>';
-}
+		if player_name.is_empty():
+			_toast("اكتب اسم القائد أولاً")
+			return
 
-function logout(){
-currentId=null;
-localStorage.removeItem(K.user);
-refresh();
-alert('تم تسجيل الخروج');
-}
+		nation = nation_select.get_item_text(nation_select.selected)
+		_start_game()
+	, 72)
 
-document.getElementById('registerForm').addEventListener('submit',async e=>{
-e.preventDefault();
-let name=document.getElementById('regName').value.trim();
-let dob=document.getElementById('regDob').value;
-let place=document.getElementById('regBirthPlace').value.trim();
-let file=document.getElementById('regPhoto').files[0];
-if(!name||!dob||!place||!file)return;
-if(file.size>2*1024*1024){alert('حجم الصورة يجب ألا يتجاوز 2 ميجابايت');return}
-if(citizens.some(c=>c.name.toLowerCase()===name.toLowerCase())){
-alert('يوجد ملف مواطن بهذا الاسم بالفعل على هذا الجهاز.');return;
-}
-let photo=await new Promise((resolve,reject)=>{
-let reader=new FileReader();
-reader.onload=()=>resolve(reader.result);
-reader.onerror=reject;
-reader.readAsDataURL(file);
-});
-let id='OR-'+Date.now().toString().slice(-8)+'-'+Math.floor(100+Math.random()*900);
-let passport='OSP-'+Date.now().toString().slice(-8);
-let citizen={
-id,name,dob,place,photo,passport,
-created:new Date().toISOString()
-};
-citizens.push(citizen);
-put(K.citizens,citizens);
-currentId=id;
-localStorage.setItem(K.user,id);
-e.target.reset();
-refresh();
-showSection('profile');
-alert('تم إنشاء ملف المواطن بنجاح!');
-});
+	_make_button(root, "تحميل آخر حفظ", _load_game, 58)
+	_make_button(root, "مسح الحفظ", _delete_save, 48)
 
-function renderProfile(){
-let u=currentCitizen();
-let el=document.getElementById('profileContent');
-if(!u){el.innerHTML='سجّل بياناتك أولاً لإنشاء ملف المواطن.';return}
-el.innerHTML=`
-<img src="${u.photo}" class="avatar mx-auto mb-3">
-<h3 class="text-2xl gold font-black">${esc(u.name)}</h3>
-<span class="badge mt-2">مواطن مسجل في المنظومة الرقمية</span>
-<div class="grid md:grid-cols-2 gap-3 text-right mt-6">
-<div class="bg-slate-900 p-3 rounded-lg text-sm">رقم الهوية: <b class="gold">${esc(u.id)}</b></div>
-<div class="bg-slate-900 p-3 rounded-lg text-sm">رقم الجواز: <b class="gold">${esc(u.passport)}</b></div>
-<div class="bg-slate-900 p-3 rounded-lg text-sm">تاريخ الميلاد: ${esc(u.dob)}</div>
-<div class="bg-slate-900 p-3 rounded-lg text-sm">مكان الميلاد: ${esc(u.place)}</div>
-</div>
-<button class="btn btn-gold mt-5" onclick="showSection('documents')">عرض وثائقي</button>`;
-}
+func _start_game() -> void:
+	gold = 1200
+	food = 900
+	wood = 600
+	turn = 1
+	selected_city = 0
+	cities.clear()
+	event_lines.clear()
 
-function renderDocument(type){
-let u=currentCitizen();
-if(!u){alert('أنشئ ملف مواطن أولاً');return}
-let html='';
-let title='',sub='';
-if(type==='id'){title='بطاقة الهوية الوطنية الرقمية';sub='DIGITAL CITIZEN ID'}
-if(type==='passport'){title='جواز دولة الأورشاليم';sub='ORSHALIM DIGITAL PASSPORT'}
-if(type==='birth'){title='شهادة ميلاد رمزية';sub='CIVIL REGISTRY CERTIFICATE'}
-let image=(type==='birth'?'':`<img src="${u.photo}" class="docphoto mx-auto mb-3">`);
-let fields=`
-<div class="docrow"><b>الاسم الكامل</b><span>${esc(u.name)}</span></div>
-<div class="docrow"><b>رقم الهوية</b><span>${esc(u.id)}</span></div>
-<div class="docrow"><b>تاريخ الميلاد</b><span>${esc(u.dob)}</span></div>
-<div class="docrow"><b>مكان الميلاد</b><span>${esc(u.place)}</span></div>`;
-if(type==='passport'){
-fields+=`<div class="docrow"><b>رقم الجواز</b><span>${esc(u.passport)}</span></div>
-<div class="docrow"><b>تاريخ الإصدار</b><span>${new Date(u.created).toLocaleDateString('ar-EG')}</span></div>
-<div class="docrow"><b>النوع</b><span>وثيقة رقمية رمزية</span></div>`;
-}
-if(type==='birth'){
-fields+=`<div class="docrow"><b>رقم الشهادة</b><span>BC-${esc(u.id)}</span></div>
-<div class="docrow"><b>السجل</b><span>السجل المدني الرقمي</span></div>`;
-}
-html=`
-<div class="doc">
-<div class="text-sm font-black tracking-widest text-amber-800">${sub}</div>
-<div class="seal">🏛️</div>
-<h2>${title}</h2>
-<div class="text-xs text-amber-800 mt-1 mb-5">دولة الأورشاليم المستقلة • المنظومة المدنية الرمزية</div>
-${image}
-${fields}
-<div class="seal mt-5">✦</div>
-<div class="flex justify-between text-xs mt-5 gap-3">
-<div>توقيع السجل المدني<br><b>إدارة السجل المدني</b></div>
-<div>ختم الدولة<br><b>الأورشاليم</b></div>
-</div>
-<div class="text-xs mt-6 text-slate-500">وثيقة رمزية داخل المشروع الرقمي وليست مستنداً حكومياً رسمياً.</div>
-</div>`;
-document.getElementById('documentView').innerHTML=html;
-}
-function printDocument(){
-if(!currentCitizen()){alert('أنشئ ملف مواطن أولاً');return}
-if(!document.getElementById('documentView').querySelector('.doc')){
-renderDocument('id');
-}
-window.print();
-}
+	for d in CITY_DATA:
+		cities.append(d.duplicate(true))
 
-function renderCitizens(){
-let q=(document.getElementById('citizenSearch')?.value||'').toLowerCase();
-let list=citizens.filter(c=>c.name.toLowerCase().includes(q)||c.id.toLowerCase().includes(q));
-document.getElementById('citizensList').innerHTML=list.length?list.map(c=>`
-<div class="panel p-4 flex items-center gap-3">
-<img src="${c.photo}" class="w-14 h-14 rounded-full object-cover border-2 border-yellow-600">
-<div><b>${esc(c.name)}</b><p class="text-xs muted mt-1">${esc(c.id)}</p></div>
-</div>`).join(''):'<div class="panel p-5 text-sm muted">لا يوجد مواطنون مطابقون للبحث.</div>';
-}
+	_build_game()
+	_log("بدأت حملة " + nation + " بقيادة " + player_name)
+	_log("استولِ على المدن وطور اقتصادك وجيشك.")
 
-function renderMinistries(){
-document.getElementById('ministriesList').innerHTML=MINISTRIES.map(m=>{
-let winner=ministers[m.name];
-return `<div class="panel p-5">
-<div class="text-3xl mb-3">${m.icon}</div>
-<h3 class="gold font-bold text-lg">${esc(m.name)}</h3>
-<p class="text-sm muted mt-2">${esc(m.desc)}</p>
-<div class="border-t border-slate-600 mt-4 pt-3 text-sm">
-${winner?`<b>${esc(winner.name)}</b><p class="text-xs text-emerald-400 mt-1">🏆 وزير منتخب</p>`:'<span class="muted">لم يُنتخب وزير لهذه الوزارة بعد</span>'}
-</div>
-</div>`;
-}).join('');
-}
+func _build_game() -> void:
+	screen_mode = "game"
+	_clear_ui()
+	_full_background(self, Color("#0b141c"))
 
-// ELECTIONS
-function initializeElection(){
-let end=Number(localStorage.getItem(K.end));
-if(!end){
-end=Date.now()+86400000;
-localStorage.setItem(K.end,String(end));
-}
-if(timerInterval)clearInterval(timerInterval);
-updateTimer();
-timerInterval=setInterval(updateTimer,1000);
-}
-function updateTimer(){
-let end=Number(localStorage.getItem(K.end));
-let rem=end-Date.now();
-if(rem<=0){
-document.getElementById('timer').textContent='انتهت الجولة';
-finishElection();
-return;
-}
-let h=Math.floor(rem/3600000),m=Math.floor(rem%3600000/60000),s=Math.floor(rem%60000/1000);
-document.getElementById('timer').textContent=[h,m,s].map(x=>String(x).padStart(2,'0')).join(':');
-}
+	ui = Control.new()
+	ui.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(ui)
 
-document.getElementById('candidateForm').addEventListener('submit',e=>{
-e.preventDefault();
-let u=currentCitizen();
-if(!u){alert('أنشئ ملف مواطن أولاً');return}
-if(Date.now()>=Number(localStorage.getItem(K.end))){alert('انتهى وقت الترشح');return}
-let ministry=document.getElementById('candidateMinistry').value;
-let program=document.getElementById('candidateProgram').value.trim();
-if(candidates.some(c=>c.citizenId===u.id&&c.ministry===ministry)){
-alert('لقد ترشحت لهذه الوزارة بالفعل');return;
-}
-candidates.push({id:'C'+Date.now(),citizenId:u.id,name:u.name,ministry,program,votes:0});
-put(K.candidates,candidates);
-e.target.reset();
-refresh();
-alert('تم تقديم طلب الترشح بنجاح');
-});
+	var main_col := VBoxContainer.new()
+	main_col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	main_col.add_theme_constant_override("separation", 6)
+	ui.add_child(main_col)
 
-function renderCandidates(){
-let el=document.getElementById('candidatesList');
-let finished=localStorage.getItem(K.finished)==='yes';
-el.innerHTML=candidates.length?candidates.map(c=>{
-let already=currentId&&votes[currentId]!==undefined;
-return `<div class="bg-slate-900 p-4 rounded-xl border border-slate-700">
-<div class="flex justify-between gap-2"><b class="gold">${esc(c.name)}</b><span class="badge">${esc(c.ministry)}</span></div>
-<p class="text-sm text-slate-300 mt-2">${esc(c.program)}</p>
-<div class="flex justify-between items-center mt-3">
-<span class="text-xs muted">🗳️ ${c.votes} صوت</span>
-<button class="btn btn-gold text-xs" ${!currentId||already||finished?'disabled':''} onclick="vote('${c.id}')">${already?'تم التصويت':finished?'انتهت الجولة':'تصويت'}</button>
-</div></div>`;
-}).join(''):'<p class="muted text-sm">لا يوجد مرشحون حتى الآن. كن أول المرشحين!</p>';
-document.getElementById('nextElectionBtn').classList.toggle('hidden',!finished);
-}
+	var top := PanelContainer.new()
+	top.custom_minimum_size.y = 112
+	top.add_theme_stylebox_override("panel", _stylebox(Color("#172a37"), Color("#9b7b36"), 1, 8))
+	main_col.add_child(top)
 
-function vote(id){
-if(!currentId){alert('سجل مواطناً أولاً');return}
-if(Date.now()>=Number(localStorage.getItem(K.end))){alert('انتهت الجولة');return}
-if(votes[currentId]!==undefined){alert('لقد أدليت بصوتك بالفعل');return}
-let c=candidates.find(x=>x.id===id);
-if(!c)return;
-c.votes++;
-votes[currentId]=id;
-put(K.candidates,candidates);
-put(K.votes,votes);
-renderCandidates();
-alert('تم تسجيل صوتك!');
-}
+	var stats := VBoxContainer.new()
+	top.add_child(stats)
 
-function finishElection(){
-if(localStorage.getItem(K.finished)==='yes')return;
-localStorage.setItem(K.finished,'yes');
-MINISTRIES.forEach(m=>{
-let list=candidates.filter(c=>c.ministry===m.name);
-if(list.length){
-list.sort((a,b)=>b.votes-a.votes);
-ministers[m.name]={name:list[0].name,citizenId:list[0].citizenId,term:Date.now()};
-}
-});
-put(K.ministers,ministers);
-renderMinistries();
-renderCandidates();
-alert('انتهت الجولة الانتخابية وتم إعلان الفائزين.');
-}
+	var nation_lbl := _make_label(stats, "🏳️ %s  |  👑 %s  |  الجولة %d" % [nation,player_name,turn], 18, Color("#e7bc51"))
+	nation_label_ui = nation_lbl
+	nation_lbl.custom_minimum_size.y = 45
 
-function startNewElection(){
-if(!confirm('بدء جولة جديدة؟ سيتم تصفير أصوات المرشحين السابقين.'))return;
-candidates=[];
-votes={};
-localStorage.removeItem(K.finished);
-put(K.candidates,candidates);
-put(K.votes,votes);
-localStorage.setItem(K.end,String(Date.now()+86400000));
-initializeElection();
-refresh();
-alert('بدأت جولة انتخابية جديدة لمدة 24 ساعة.');
-}
+	resources_label = _make_label(stats, "💰 %d     🌾 %d     🪵 %d     ⚔️ %d" % [gold,food,wood,_army_total()], 18)
+	resources_label.custom_minimum_size.y = 48
 
-// MESSAGES
-document.getElementById('messageForm').addEventListener('submit',e=>{
-e.preventDefault();
-let u=currentCitizen();
-if(!u){alert('يجب إنشاء ملف مواطن لإرسال الرسائل');return}
-messages.push({
-id:'M'+Date.now(),
-citizenId:u.id,
-name:u.name,
-ministry:document.getElementById('messageMinistry').value,
-subject:document.getElementById('messageSubject').value.trim(),
-body:document.getElementById('messageBody').value.trim(),
-reply:'',
-status:'وصل إلى الوزارة',
-date:new Date().toLocaleString('ar-EG')
-});
-put(K.messages,messages);
-e.target.reset();
-renderMyMessages();
-alert('تم إرسال رسالتك إلى الوزارة المختصة.');
-});
+	map_panel = Control.new()
+	map_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	map_panel.clip_contents = true
+	main_col.add_child(map_panel)
+	map_panel.draw.connect(_draw_map)
+	map_panel.gui_input.connect(_map_input)
 
-function renderMyMessages(){
-let u=currentCitizen();
-let list=document.getElementById('myMessages');
-if(!u){list.innerHTML='<p class="muted text-sm">سجّل الدخول لعرض مراسلاتك.</p>';return}
-let mine=messages.filter(m=>m.citizenId===u.id);
-list.innerHTML=mine.length?mine.slice().reverse().map(m=>`
-<div class="bg-slate-900 p-4 rounded-xl">
-<b class="gold">${esc(m.ministry)}</b>
-<p class="font-bold mt-2">${esc(m.subject)}</p>
-<p class="text-sm text-slate-300 mt-2">${esc(m.body)}</p>
-<p class="text-xs muted mt-2">${esc(m.date)} • ${esc(m.status)}</p>
-${m.reply?`<div class="mt-3 border-r-2 border-emerald-500 pr-3"><b class="text-emerald-400 text-sm">رد الوزارة</b><p class="text-sm mt-1">${esc(m.reply)}</p></div>`:'<p class="text-xs text-amber-400 mt-2">بانتظار رد الوزارة</p>'}
-</div>`).join(''):'<p class="muted text-sm">ليس لديك مراسلات بعد.</p>';
-}
+	var lower := PanelContainer.new()
+	lower.custom_minimum_size.y = 330
+	lower.add_theme_stylebox_override("panel", _stylebox(Color("#172a37"), Color("#9b7b36"), 1, 8))
+	main_col.add_child(lower)
 
-function renderMinisterPanel(){
-let u=currentCitizen();
-let ministry=currentMinisterMinistry();
-let el=document.getElementById('ministerContent');
-if(!u){el.innerHTML='أنشئ ملف مواطن وسجل الدخول أولاً.';return}
-if(!ministry){el.innerHTML='<p class="muted">هذا الحساب ليس مرتبطاً بوزير منتخب حالياً. تظهر لوحة الوزير فقط لحساب المواطن الفائز بالانتخابات.</p>';return}
-let inbox=messages.filter(m=>m.ministry===ministry.name);
-el.innerHTML=`<h3 class="gold text-xl font-bold mb-4">${esc(ministry.name)} • ${esc(u.name)}</h3>
-<p class="text-sm text-emerald-400 mb-4">🏆 حساب الوزير المنتخب</p>
-${inbox.length?inbox.map(m=>`
-<div class="bg-slate-900 p-4 rounded-xl mb-4">
-<b>${esc(m.subject)}</b>
-<p class="text-xs muted mt-1">من المواطن: ${esc(m.name)}</p>
-<p class="text-sm text-slate-300 mt-3">${esc(m.body)}</p>
-<p class="text-xs muted mt-2">${esc(m.date)} • ${esc(m.status)}</p>
-<textarea id="reply-${m.id}" rows="2" class="mt-3" placeholder="اكتب رد الوزارة...">${esc(m.reply||'')}</textarea>
-<button class="btn btn-green mt-2" onclick="replyMessage('${m.id}')">إرسال رد الوزارة</button>
-</div>`).join(''):'<p class="muted text-sm">لا توجد رسائل لهذه الوزارة حتى الآن.</p>'}`;
-}
+	var lower_col := VBoxContainer.new()
+	lower.add_child(lower_col)
 
-function replyMessage(id){
-let u=currentCitizen();
-let ministry=currentMinisterMinistry();
-if(!u||!ministry){alert('ليس لديك صلاحية الوزير');return}
-let m=messages.find(x=>x.id===id);
-if(!m||m.ministry!==ministry.name)return;
-let reply=document.getElementById('reply-'+id).value.trim();
-if(!reply){alert('اكتب الرد أولاً');return}
-m.reply=reply;
-m.status='تم الرد من الوزارة';
-put(K.messages,messages);
-renderMinisterPanel();
-alert('تم إرسال الرد إلى المواطن.');
-}
+	city_panel = Panel.new()
+	city_panel.custom_minimum_size.y = 125
+	city_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	lower_col.add_child(city_panel)
+	_refresh_city_panel()
 
-document.addEventListener('DOMContentLoaded',()=>{
-refresh();
-initializeElection();
-});
-</script>
-</body>
-</html>
+	var action_row := HBoxContainer.new()
+	lower_col.add_child(action_row)
+
+	_add_action(action_row, "تجنيد 50", _recruit)
+	_add_action(action_row, "تطوير", _upgrade_city)
+	_add_action(action_row, "هجوم", _attack)
+	_add_action(action_row, "جولة", _next_turn)
+
+	var second_row := HBoxContainer.new()
+	lower_col.add_child(second_row)
+
+	_add_action(second_row, "حفظ", _save_game)
+	_add_action(second_row, "تحالفات", _diplomacy)
+	_add_action(second_row, "القائمة", _build_lobby)
+
+	log_box = RichTextLabel.new()
+	log_box.custom_minimum_size.y = 70
+	log_box.fit_content = false
+	log_box.scroll_active = true
+	log_box.add_theme_font_size_override("normal_font_size", 15)
+	main_col.add_child(log_box)
+
+	for line in event_lines:
+		log_box.append_text(line + "\n")
+
+	map_panel.queue_redraw()
+
+func _add_action(parent: Control, text: String, callback: Callable) -> void:
+	var b := Button.new()
+	b.text = text
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.custom_minimum_size.y = 52
+	b.add_theme_font_size_override("font_size", 17)
+	b.add_theme_stylebox_override("normal", _stylebox(Color("#263d4c"), Color("#b58c3b"), 1, 8))
+	b.pressed.connect(callback)
+	parent.add_child(b)
+
+func _draw_map() -> void:
+	if not is_instance_valid(map_panel):
+		return
+
+	var w := map_panel.size.x
+	var h := map_panel.size.y
+
+	map_panel.draw_rect(Rect2(Vector2.ZERO, map_panel.size), Color("#172b25"))
+
+	# البحر
+	map_panel.draw_rect(Rect2(Vector2(0,h*0.08),Vector2(w,h*0.22)),Color("#1a3546"))
+	map_panel.draw_rect(Rect2(Vector2(0,h*0.62),Vector2(w,h*0.15)),Color("#1a3546"))
+
+	# خطوط الخريطة
+	for i in range(10):
+		var y := h*0.1 + i*h*0.08
+		map_panel.draw_line(Vector2(0,y),Vector2(w,y),Color("#344b40"),1.0)
+
+	for i in range(8):
+		var x := i*w/8
+		map_panel.draw_line(Vector2(x,0),Vector2(x,h),Color("#344b40"),1.0)
+
+	map_panel.draw_string(
+		ThemeDB.fallback_font,
+		Vector2(w*0.46,h*0.12),
+		"البحر المتوسط",
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1,
+		17,
+		Color("#88b7c7")
+	)
+
+	map_panel.draw_string(
+		ThemeDB.fallback_font,
+		Vector2(w*0.73,h*0.75),
+		"الجزيرة العربية",
+		HORIZONTAL_ALIGNMENT_CENTER,
+		-1,
+		18,
+		Color("#a6b59b")
+	)
+
+	for i in range(cities.size()):
+		var c: Dictionary = cities[i]
+		var pos := Vector2(c.pos.x*w,c.pos.y*h)*map_zoom + map_offset
+
+		var col := Color("#37bb73")
+		if c.owner == "enemy":
+			col = Color("#d85858")
+		elif c.owner == "neutral":
+			col = Color("#b7bfc7")
+
+		var radius := 23.0
+
+		map_panel.draw_circle(pos,radius+3,Color("#101820"))
+		map_panel.draw_circle(pos,radius,col)
+		map_panel.draw_circle(pos,radius-5,Color("#263b4b"))
+
+		map_panel.draw_string(
+			ThemeDB.fallback_font,
+			pos+Vector2(-35,38),
+			c.name,
+			HORIZONTAL_ALIGNMENT_CENTER,
+			75,
+			15,
+			Color.WHITE
+		)
+
+		map_panel.draw_string(
+			ThemeDB.fallback_font,
+			pos+Vector2(-30,5),
+			str(c.army),
+			HORIZONTAL_ALIGNMENT_CENTER,
+			60,
+			14,
+			Color("#f7d46d")
+		)
+
+		if i == selected_city:
+			map_panel.draw_arc(pos,radius+9,0,TAU,32,Color("#f3ca58"),3)
+
+func _map_input(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			dragging = true
+			drag_moved = false
+			drag_start = event.position
+			offset_start = map_offset
+		else:
+			dragging = false
+			if not drag_moved:
+				_select_city_at(event.position)
+
+	elif event is InputEventScreenDrag and dragging:
+		if event.position.distance_to(drag_start) > 10:
+			drag_moved = true
+
+		map_offset = offset_start + (event.position-drag_start)
+		map_panel.queue_redraw()
+
+	elif event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			if event.pressed:
+				dragging = true
+				drag_moved = false
+				drag_start = event.position
+				offset_start = map_offset
+			else:
+				dragging = false
+				if not drag_moved:
+					_select_city_at(event.position)
+
+		elif event.button_index == MOUSE_BUTTON_WHEEL_UP:
+			map_zoom = min(map_zoom+0.1,1.8)
+			map_panel.queue_redraw()
+
+		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			map_zoom = max(map_zoom-0.1,0.7)
+			map_panel.queue_redraw()
+
+	elif event is InputEventMouseMotion and dragging:
+		if event.position.distance_to(drag_start) > 10:
+			drag_moved = true
+
+		map_offset = offset_start + (event.position-drag_start)
+		map_panel.queue_redraw()
+
+func _select_city_at(point: Vector2) -> void:
+	var w = map_panel.size.x
+	var h = map_panel.size.y
+
+	for i in range(cities.size()):
+		var c = cities[i]
+		var p = Vector2(c.pos.x*w,c.pos.y*h)*map_zoom+map_offset
+
+		if p.distance_to(point) < 38:
+			selected_city = i
+			_refresh_city_panel()
+			map_panel.queue_redraw()
+			return
+
+func _refresh_city_panel() -> void:
+	if not is_instance_valid(city_panel) or cities.is_empty():
+		return
+
+	for child in city_panel.get_children():
+		child.queue_free()
+
+	var c = cities[selected_city]
+
+	var col = VBoxContainer.new()
+	col.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	col.add_theme_constant_override("separation",2)
+	city_panel.add_child(col)
+
+	var owner_text = "ملكك"
+	if c.owner == "enemy":
+		owner_text = "عدو"
+	elif c.owner == "neutral":
+		owner_text = "مستقلة"
+
+	_make_label(
+		col,
+		"🏙️ %s  |  %s  |  المستوى %d" % [c.name,owner_text,c.level],
+		20,
+		Color("#e7bc51")
+	)
+
+	_make_label(col,"القوات: %d    الدفاع: %d" % [c.army,c.level*100],17)
+	_make_label(col,"اختر مدينة على الخريطة ثم استخدم الأوامر.",15,Color("#b4c4cf"))
+
+func _recruit() -> void:
+	if selected_city < 0:
+		return
+
+	var c = cities[selected_city]
+
+	if c.owner != "player":
+		_toast("لا يمكنك التجنيد في مدينة ليست تحت سيطرتك")
+		return
+
+	if gold < 150 or food < 100:
+		_toast("الموارد غير كافية للتجنيد")
+		return
+
+	gold -= 150
+	food -= 100
+	c.army += 50
+
+	_log("تم تجنيد 50 جندي في "+c.name)
+	_refresh_city_panel()
+	map_panel.queue_redraw()
+	_update_stats()
+
+func _upgrade_city() -> void:
+	if selected_city < 0:
+		return
+
+	var c = cities[selected_city]
+
+	if c.owner != "player":
+		_toast("سيطر على المدينة أولاً")
+		return
+
+	if gold < 250 or wood < 100:
+		_toast("تحتاج 250 ذهب و100 خشب")
+		return
+
+	gold -= 250
+	wood -= 100
+	c.level += 1
+
+	_log("تم تطوير "+c.name+" للمستوى "+str(c.level))
+	_refresh_city_panel()
+	_update_stats()
+
+func _attack() -> void:
+	if selected_city < 0:
+		return
+
+	var target = cities[selected_city]
+
+	if target.owner == "player":
+		_toast("هذه مدينتك")
+		return
+
+	var source_index = -1
+
+	for i in range(cities.size()):
+		if cities[i].owner == "player" and cities[i].army >= 50:
+			source_index = i
+			break
+
+	if source_index == -1:
+		_toast("لا يوجد جيش كافٍ للهجوم")
+		return
+
+	var source = cities[source_index]
+
+	var atk = source.army * randf_range(0.85,1.15)
+	var def = (target.army+target.level*100) * randf_range(0.85,1.15)
+
+	if atk > def:
+		source.army = max(30,int(source.army*0.55))
+		target.owner = "player"
+		target.army = max(25,int((atk-def)*0.35))
+		gold += 200
+
+		_log("انتصرت وسيطرت على "+target.name+"! مكافأة 200 ذهب.")
+	else:
+		source.army = max(20,int(source.army*0.45))
+		target.army = max(20,int(target.army*0.75))
+
+		_log("فشل الهجوم على "+target.name+" وخسرت جزءًا من الجيش.")
+
+	_refresh_city_panel()
+	map_panel.queue_redraw()
+	_update_stats()
+
+func _next_turn() -> void:
+	turn += 1
+
+	for c in cities:
+		if c.owner == "player":
+			gold += c.level*100
+			food += c.level*70
+			wood += c.level*35
+			c.army += c.level*5
+
+		elif c.owner == "enemy":
+			c.army += randi_range(5,20)
+
+	_enemy_action()
+
+	_log("الجولة %d: دخل الموارد تم تحصيله." % turn)
+
+	_update_stats()
+	map_panel.queue_redraw()
+	_refresh_city_panel()
+	_save_game()
+
+func _enemy_action() -> void:
+	var enemy_indices = []
+	var player_indices = []
+
+	for i in range(cities.size()):
+		if cities[i].owner == "enemy":
+			enemy_indices.append(i)
+
+		if cities[i].owner == "player":
+			player_indices.append(i)
+
+	if enemy_indices.is_empty() or player_indices.is_empty():
+		return
+
+	if randf() < 0.25:
+		var e = enemy_indices.pick_random()
+		var p = player_indices.pick_random()
+
+		if cities[e].army > cities[p].army+100:
+			cities[p].owner = "enemy"
+			cities[p].army = max(30,int(cities[e].army*0.3))
+			cities[e].army = int(cities[e].army*0.6)
+
+			_log("⚠️ هجوم منافس! فقدت السيطرة على "+cities[p].name)
+
+func _diplomacy() -> void:
+	_toast("الدبلوماسية ستضاف في تحديث قادم")
+
+func _army_total() -> int:
+	var total = 0
+
+	for c in cities:
+		if c.owner == "player":
+			total += c.army
+
+	return total
+
+func _update_stats() -> void:
+	if screen_mode != "game":
+		return
+
+	if is_instance_valid(resources_label):
+		resources_label.text = "💰 %d     🌾 %d     🪵 %d     ⚔️ %d" % [gold,food,wood,_army_total()]
+
+	if is_instance_valid(nation_label_ui):
+		nation_label_ui.text = "🏳️ %s  |  👑 %s  |  الجولة %d" % [nation,player_name,turn]
+
+	if is_instance_valid(map_panel):
+		map_panel.queue_redraw()
+
+func _log(text: String) -> void:
+	event_lines.append(text)
+
+	if event_lines.size() > 50:
+		event_lines.pop_front()
+
+	if is_instance_valid(log_box):
+		log_box.append_text(text+"\n")
+
+func _toast(text: String) -> void:
+	var popup = AcceptDialog.new()
+	popup.dialog_text = text
+	add_child(popup)
+	popup.popup_centered()
+
+func _save_game() -> void:
+	var city_save: Array = []
+
+	for city in cities:
+		var copy: Dictionary = city.duplicate(true)
+		copy["pos"] = [city.pos.x,city.pos.y]
+		city_save.append(copy)
+
+	var data = {
+		"player_name":player_name,
+		"nation":nation,
+		"gold":gold,
+		"food":food,
+		"wood":wood,
+		"turn":turn,
+		"selected_city":selected_city,
+		"cities":city_save,
+		"event_lines":event_lines
+	}
+
+	var f = FileAccess.open(SAVE_PATH,FileAccess.WRITE)
+
+	if f:
+		f.store_string(JSON.stringify(data))
+		f.close()
+		_toast("تم حفظ الحملة")
+	else:
+		_toast("تعذر الحفظ")
+
+func _load_game() -> void:
+	if not FileAccess.file_exists(SAVE_PATH):
+		_toast("لا يوجد ملف حفظ بعد")
+		return
+
+	var f = FileAccess.open(SAVE_PATH,FileAccess.READ)
+	var parsed = JSON.parse_string(f.get_as_text())
+	f.close()
+
+	if typeof(parsed) != TYPE_DICTIONARY:
+		_toast("ملف الحفظ غير صالح")
+		return
+
+	player_name = parsed.get("player_name","")
+	nation = parsed.get("nation","مصر")
+	gold = parsed.get("gold",1000)
+	food = parsed.get("food",800)
+	wood = parsed.get("wood",500)
+	turn = parsed.get("turn",1)
+	selected_city = parsed.get("selected_city",0)
+
+	cities.clear()
+
+	for saved_city in parsed.get("cities",[]):
+		var city: Dictionary = saved_city.duplicate(true)
+		var pos_data = city.get("pos",[0.0,0.0])
+
+		if pos_data is Array and pos_data.size() >= 2:
+			city["pos"] = Vector2(float(pos_data[0]),float(pos_data[1]))
+
+		cities.append(city)
+
+	event_lines.clear()
+
+	for saved_line in parsed.get("event_lines",[]):
+		event_lines.append(str(saved_line))
+
+	if cities.is_empty():
+		_toast("ملف الحفظ لا يحتوي على مدن")
+		return
+
+	selected_city = clampi(selected_city,0,cities.size()-1)
+
+	_build_game()
+	_log("تم تحميل الحملة المحفوظة.")
+
+func _delete_save() -> void:
+	if FileAccess.file_exists(SAVE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(SAVE_PATH))
+
+	_toast("تم حذف الحفظ المحلي")
